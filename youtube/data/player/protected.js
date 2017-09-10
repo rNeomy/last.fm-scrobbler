@@ -6,21 +6,33 @@ document.documentElement.appendChild(Object.assign(document.createElement('scrip
 
     yttools.lastfm = {};
 
-    function onYouTubePlayerReady(player) {
+    yttools.push(player => {
+      let fetched = '';
+
       yttools.lastfm.player = player;
+
+      document.addEventListener('yt-page-data-fetched', e => fetched = e.detail);
+
+      player.addEventListener('onStateChange', state => {
+        if (fetched && state === 1) {
+          console.log('now');
+          window.postMessage({
+            method: 'lastfm-data-fetched',
+            info: player.getVideoData(),
+            page: fetched,
+            duration: player.getDuration()
+          }, '*');
+          fetched = '';
+        }
+        window.postMessage({
+          method: 'lastfm-player-state',
+          state
+        }, '*');
+      });
+    });
+
+    function onYouTubePlayerReady(player) {
       yttools.forEach(c => c(player));
-
-      document.addEventListener('yt-page-data-fetched', e => window.postMessage({
-        method: 'lastfm-data-fetched',
-        info: player.getVideoData(),
-        page: e.data,
-        duration: player.getDuration()
-      }, '*'));
-
-      player.addEventListener('onStateChange', state => window.postMessage({
-        method: 'lastfm-player-state',
-        state
-      }, '*'));
     }
 
     {
