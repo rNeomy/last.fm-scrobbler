@@ -15,7 +15,6 @@ document.documentElement.appendChild(Object.assign(document.createElement('scrip
 
       player.addEventListener('onStateChange', state => {
         if (fetched && state === 1) {
-          console.log('now');
           window.postMessage({
             method: 'lastfm-data-fetched',
             info: player.getVideoData(),
