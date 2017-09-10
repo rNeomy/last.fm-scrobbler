@@ -59,5 +59,6 @@
   "web_accessible_resources": [
     "data/love/unprotected.js",
     "data/scrobbler/unprotected.js"
-  ]
+  ],
+  "homepage_url": "http://add0n.com/lastfm-tool.html?from=youtube"
 }
