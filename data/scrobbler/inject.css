@@ -1,0 +1,19 @@
+.scrobbler-div {
+  font-size: 12px;
+  white-space: nowrap;
+  position: absolute;
+  right: 0;
+  top: -19px;
+  z-index: 10000;
+}
+.scrobbler-div[data-clickable=true] {
+  cursor: pointer;
+}
+.scrobbler-div[data-clickable=false] {
+  pointer-events: none;
+  cursor: default;
+}
+
+.ytp-love-button[data-hidden=true] {
+  display: none !important;
+}
