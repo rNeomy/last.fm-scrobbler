@@ -1,0 +1,28 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Last.fm Scrobbler :: Options</title>
+  </head>
+  <style type="text/css">
+    input[type=text] {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    h4 {
+      margin: 10px 0 5px 0;
+    }
+  </style>
+  <body>
+    <label><input type="checkbox" id="checkCategory"> Only scrobble to Last.fm on the following categories</label>
+    <h4>Supported categories</h4>
+    <input type="text" id="categories" placeholder="e.g.: Music, Entertainment">
+
+    <p>
+      <input type="button" id="reset" value="Reset">
+      <input type="button" id="save" value="Save">
+      <span id="info"></span>
+    </p>
+    <script src="index.js"></script>
+  </body>
+</html>

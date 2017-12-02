@@ -17,3 +17,28 @@
 .ytp-love-button[data-hidden=true] {
   display: none !important;
 }
+
+.scrobbler-editor {
+  font-size: 12px;
+  white-space: nowrap;
+  position: absolute;
+  left: 0;
+  top: -22px;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.scrobbler-editor input[type=submit] {
+  border: solid 1px #ccc;
+  border-radius: 0;
+}
+.scrobbler-editor input[type=text] {
+  flex: 1;
+  outline: none;
+}
+.scrobbler-editor input {
+  height: 20px;
+  box-sizing: border-box;
+  margin-left: 5px;
+}

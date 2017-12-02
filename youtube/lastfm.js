@@ -3,8 +3,7 @@
 
 var lastfm = {
   key: window.atob('M2VjNzY1MGEzZmE5MGY3ZGE3YWE5NmFjMzNmMTIzNjc='),
-  secret: window.atob('NzExMzM5YzBjNTQ4ZDJiOWJiMmQ1ZWRmYzg5YzlmY2Q='),
-  callback: 'http://tools.add0n.com/oauth.html'
+  secret: window.atob('NzExMzM5YzBjNTQ4ZDJiOWJiMmQ1ZWRmYzg5YzlmY2Q=')
 };
 
 lastfm.fetch = obj => {
@@ -24,26 +23,28 @@ lastfm.fetch = obj => {
 };
 
 lastfm.authenticate = () => new Promise((resolve, reject) => {
-  const observe = (request, sender) => {
-    if (request.method === 'auth.getSession') {
-      chrome.tabs.remove(sender.tab.id);
-      chrome.runtime.onMessage.removeListener(observe);
-      lastfm.fetch(request).then(json => {
-        if (json && json.error) {
-          reject(json.message);
-        }
-        else if (json && json.session) {
-          chrome.storage.local.set({
-            session: json.session
-          }, resolve);
-        }
-      }).catch(reject);
+  chrome.identity.launchWebAuthFlow({
+    'url': 'https://www.last.fm/api/auth?api_key=' + lastfm.key + '&cb=' + chrome.identity.getRedirectURL('oauth.html'),
+    'interactive': true
+  }, url => {
+    if (chrome.runtime.lastError) {
+      return reject(chrome.runtime.lastError);
     }
-  };
-
-  chrome.runtime.onMessage.addListener(observe);
-  chrome.tabs.create({
-    url: 'https://www.last.fm/api/auth?api_key=' + lastfm.key + '&cb=' + lastfm.callback
+    console.log(url.split('token=').pop().split('&').shift(), url)
+    lastfm.fetch({
+      method: 'auth.getSession',
+      token: url.split('token=').pop().split('&').shift()
+    }).then(json => {
+      console.log(json)
+      if (json && json.error) {
+        reject(json.message);
+      }
+      else if (json && json.session) {
+        chrome.storage.local.set({
+          session: json.session
+        }, resolve);
+      }
+    }).catch(reject);
   });
 });
 
