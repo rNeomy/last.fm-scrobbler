@@ -11,9 +11,7 @@ document.documentElement.appendChild(Object.assign(document.createElement('scrip
 
       yttools.lastfm.player = player;
 
-      document.addEventListener('yt-page-data-fetched', e => fetched = e.detail);
-
-      player.addEventListener('onStateChange', state => {
+      const onStateChange = state => {
         if (fetched && state === 1) {
           window.postMessage({
             method: 'lastfm-data-fetched',
@@ -27,7 +25,16 @@ document.documentElement.appendChild(Object.assign(document.createElement('scrip
           method: 'lastfm-player-state',
           state
         }, '*');
+      };
+
+      document.addEventListener('yt-page-data-fetched', e => {
+        fetched = e.detail;
+        if (player.getPlayerState() === 1) {
+          onStateChange(1);
+        }
       });
+
+      player.addEventListener('onStateChange', onStateChange);
     });
 
     function onYouTubePlayerReady(player) {

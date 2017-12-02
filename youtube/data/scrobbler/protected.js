@@ -193,7 +193,6 @@ window.addEventListener('message', ({data}) => {
         .rows['0'].metadataRowRenderer.contents['0'].runs['0'].text;
     }
     catch (e) {}
-
     chrome.storage.local.get({
       categories: ['Música', 'Music', 'Entertainment'],
       checkCategory: true
@@ -226,6 +225,7 @@ window.addEventListener('message', ({data}) => {
         })(info);
         artist = song.artist;
         track = song.track;
+        console.log(artist, track);
         if (artist && track) {
           check();
         }

@@ -23,19 +23,21 @@ lastfm.fetch = obj => {
 };
 
 lastfm.authenticate = () => new Promise((resolve, reject) => {
+  const ru = chrome.identity.getRedirectURL('oauth.html');
   chrome.identity.launchWebAuthFlow({
-    'url': 'https://www.last.fm/api/auth?api_key=' + lastfm.key + '&cb=' + chrome.identity.getRedirectURL('oauth.html'),
+    'url': 'https://www.last.fm/api/auth?api_key=' + lastfm.key +
+      '&cb=' + encodeURIComponent(ru) +
+      // a firefox mess!
+      '&redirect_uri=' + encodeURIComponent(ru),
     'interactive': true
   }, url => {
-    if (chrome.runtime.lastError) {
-      return reject(chrome.runtime.lastError);
+    if (chrome.runtime.lastError || !url) {
+      return reject(chrome.runtime.lastError || 'Empty response from chrome.identity.launchWebAuthFlow');
     }
-    console.log(url.split('token=').pop().split('&').shift(), url)
     lastfm.fetch({
       method: 'auth.getSession',
       token: url.split('token=').pop().split('&').shift()
     }).then(json => {
-      console.log(json)
       if (json && json.error) {
         reject(json.message);
       }
