@@ -1,10 +1,13 @@
 .scrobbler-div {
   font-size: 12px;
   white-space: nowrap;
-  position: absolute;
-  right: 0;
-  top: -19px;
-  z-index: 10000;
+  padding: 5px;
+  background-color: #212121 !important;
+  color: #fff !important;
+  float: right;
+}
+.scrobbler-div:empty {
+  display: none;
 }
 .scrobbler-div[data-clickable=true] {
   cursor: pointer;
@@ -21,24 +24,29 @@
 .scrobbler-editor {
   font-size: 12px;
   white-space: nowrap;
-  position: absolute;
-  left: 0;
-  top: -22px;
-  z-index: 10000;
   display: flex;
   align-items: center;
-  width: 100%;
+  padding: 5px;
+  background-color: #212121 !important;
+  color: #fff !important;
 }
+
 .scrobbler-editor input[type=submit] {
   border: solid 1px #ccc;
   border-radius: 0;
+  cursor: pointer;
 }
 .scrobbler-editor input[type=text] {
   flex: 1;
   outline: none;
+  background-color: rgba(37, 37, 37, 0.05) !important;
+  border: none;
+  color: #fff;
+  background-color: rgba(255,255,255, 0.10) !important;
+  padding: 5px;
 }
+
 .scrobbler-editor input {
-  height: 20px;
   box-sizing: border-box;
   margin-left: 5px;
 }

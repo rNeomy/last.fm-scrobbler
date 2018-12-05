@@ -35,7 +35,7 @@ function check() {
       active = true;
       msg.clickable(true, 'track.scrobble');
       // update title
-      console.log(artist, track);
+      // console.log(artist, track);
       msg.title(`Scrobbling Details
 
 Artist: ${artist}
@@ -61,20 +61,21 @@ Category: ${category}`);
 var editor = {
   form: null,
   init: () => {
-    const parent = document.querySelector('ytd-watch #player-container');
+    const parent = document.querySelector('ytd-watch #player-container') ||
+      document.querySelector('ytd-player #container');
     editor.form = document.createElement('form');
     if (parent) {
       const aInput = Object.assign(document.createElement('input'), {
         'type': 'text',
-        value: artist
+        'value': artist
       });
       const tInput = Object.assign(document.createElement('input'), {
         'type': 'text',
-        value: track
+        'value': track
       });
-      editor.form.appendChild(document.createTextNode('Artist '));
+      editor.form.appendChild(document.createTextNode('Artist: '));
       editor.form.appendChild(aInput);
-      editor.form.appendChild(document.createTextNode(', Track '));
+      editor.form.appendChild(document.createTextNode(' Track: '));
       editor.form.appendChild(tInput);
       editor.form.appendChild(Object.assign(document.createElement('input'), {
         type: 'submit',
@@ -93,7 +94,7 @@ var editor = {
       aInput.focus();
     }
     else {
-      console.log('Cannot install editor', 'parent not found');
+      console.error('Cannot install editor', 'parent not found');
     }
   },
   remove: () => {
@@ -132,13 +133,15 @@ msg = (div => {
   return {
     init: () => {
       div.classList.add('scrobbler-div');
-      const parent = document.querySelector('ytd-watch #player-container');
+      const parent = document.querySelector('ytd-watch #player-container') ||
+        document.querySelector('ytd-player #container');
 
       if (parent) {
         parent.appendChild(div);
+        console.log(div);
       }
       else {
-        console.log('Cannot install msgbox', 'parent not found');
+        console.error('Cannot install msgbox', 'parent not found');
       }
       msg.init = () => {};
     },
@@ -198,7 +201,7 @@ window.addEventListener('message', ({data}) => {
       checkCategory: true
     }, prefs => {
       if (prefs.categories.indexOf(category) === -1 && prefs.checkCategory) {
-        msg.displayFor(`Scrobbling skipped ("${category}" category is not supported)`);
+        msg.displayFor(`Scrobbling skipped ("${category}" category is not listed)`);
         hideLove();
       }
       else if (duration <= 30) {
@@ -225,7 +228,7 @@ window.addEventListener('message', ({data}) => {
         })(info);
         artist = song.artist;
         track = song.track;
-        console.log(artist, track);
+        // console.log(artist, track);
         if (artist && track) {
           check();
         }

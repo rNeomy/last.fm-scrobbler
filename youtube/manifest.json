@@ -1,13 +1,13 @@
 {
   "manifest_version": 2,
   "name": "Last.fm Scrobbler for YouTube",
-  "version": "0.1.3",
+  "version": "0.1.7",
 
   "description": "Scrobbling YouTube music videos to Last.fm",
 
   "permissions": [
     "storage",
-    "tabs",
+    "https://www.last.fm/api/*",
     "https://ws.audioscrobbler.com/2.0/*",
     "identity"
   ],
@@ -50,8 +50,7 @@
     "default_title": "Last.fm Scrobbler for YouTube"
   },
   "web_accessible_resources": [
-    "data/love/unprotected.js",
-    "data/scrobbler/unprotected.js"
+    "data/love/unprotected.js"
   ],
   "homepage_url": "http://add0n.com/lastfm-tool.html?from=youtube",
 
@@ -59,7 +58,6 @@
     "page": "data/options/index.html",
     "chrome_style": true
   },
-
   "applications": {
     "gecko": {
       "id": "{4e09fe4d-835f-4d58-a7ec-0bbc19f0aeab}",
