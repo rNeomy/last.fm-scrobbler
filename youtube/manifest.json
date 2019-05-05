@@ -23,7 +23,8 @@
   "content_scripts": [{
     "run_at": "document_start",
     "matches": [
-      "*://*.youtube.com/*"
+      "*://*.youtube.com/*",
+      "*://youtube-playlist-randomizer.valami.info/*"
     ],
     "css": ["data/scrobbler/inject.css"],
     "js": [

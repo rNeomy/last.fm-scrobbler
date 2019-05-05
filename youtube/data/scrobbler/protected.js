@@ -62,7 +62,7 @@ var editor = {
   form: null,
   init: () => {
     const parent = document.querySelector('ytd-watch #player-container') ||
-      document.querySelector('ytd-player #container');
+      document.querySelector('ytd-player #container') || document.querySelector('#videotitle');
     editor.form = document.createElement('form');
     if (parent) {
       const aInput = Object.assign(document.createElement('input'), {
@@ -135,11 +135,14 @@ msg = (div => {
       div.classList.add('scrobbler-div');
       const parent = document.querySelector('ytd-watch #player-container') ||
         document.querySelector('ytd-player #container');
+      const noneYoutubeParent = document.querySelector('.videowrapper');
 
       if (parent) {
         parent.appendChild(div);
-        console.log(div);
-      }
+      } 
+      else if (noneYoutubeParent) {
+        noneYoutubeParent.insertAdjacentElement('afterend', div);
+      } 
       else {
         console.error('Cannot install msgbox', 'parent not found');
       }
@@ -182,68 +185,91 @@ function hideLove() {
   }, '*');
 }
 
-window.addEventListener('message', ({data}) => {
-  if (data && data.method === 'lastfm-data-fetched') {
-    init();
-    const {page, info} = data;
-    duration = data.duration;
+var registerToMessages = () => {
+  window.addEventListener('message', ({data}) => {
+    if (data && data.method) {
+      switch (data.method) {
+        case 'lastfm-data-fetched':
+          console.log('lastfm-data-fetched');
+          init();
+          const {
+            page,
+            info
+          } = data;
+          duration = data.duration;
 
-    try {
-      category = page.pageData.response
-        .contents.twoColumnWatchNextResults.results
-        .results.contents[1].videoSecondaryInfoRenderer
-        .metadataRowContainer.metadataRowContainerRenderer
-        .rows['0'].metadataRowRenderer.contents['0'].runs['0'].text;
-    }
-    catch (e) {}
-    chrome.storage.local.get({
-      categories: ['Música', 'Music', 'Entertainment'],
-      checkCategory: true
-    }, prefs => {
-      if (prefs.categories.indexOf(category) === -1 && prefs.checkCategory) {
-        msg.displayFor(`Scrobbling skipped ("${category}" category is not listed)`);
-        hideLove();
-      }
-      else if (duration <= 30) {
-        msg.displayFor('Scrobbling skipped (Less than 30 seconds)');
-        hideLove();
-      }
-      else {
-        const song = (({title, author}) => {
-          title = title.replace(/^\[[^\]]+\]\s*-*\s*/i, '');
-          const separators = [
-            ' -- ', '--', ' - ', ' – ', ' — ',
-            ' // ', '-', '–', '—', ':', '|', '///', '/'
-          ].filter(s => title.indexOf(s) !== -1);
-          if (separators.length) {
-            const [artist, track] = title.split(separators[0]);
-            return {artist, track};
+          const isYoutube = window.location.toString().startsWith('https://www.youtube.com');
+          const canCheckCategory = isYoutube;
+          try {
+            category = page.pageData.response
+              .contents.twoColumnWatchNextResults.results
+              .results.contents[1].videoSecondaryInfoRenderer
+              .metadataRowContainer.metadataRowContainerRenderer
+              .rows['0'].metadataRowRenderer.contents['0'].runs['0'].text;
+          } 
+          catch (e) {}
+          chrome.storage.local.get({
+            categories: ['Música', 'Music', 'Entertainment'],
+            checkCategory: canCheckCategory
+          }, prefs => {
+            if (prefs.categories.indexOf(category) === -1 && prefs.checkCategory) {
+              msg.displayFor(`Scrobbling skipped ("${category}" category is not listed)`);
+              hideLove();
+            }
+            else if (duration <= 30) {
+              msg.displayFor('Scrobbling skipped (Less than 30 seconds)');
+              hideLove();
+            }
+            else {
+              const song = (({
+                title,
+                author
+              }) => {
+                title = title.replace(/^\[[^\]]+\]\s*-*\s*/i, '');
+                const separators = [
+                  ' -- ', '--', ' - ', ' – ', ' — ',
+                  ' // ', '-', '–', '—', ':', '|', '///', '/'
+                ].filter(s => title.indexOf(s) !== -1);
+                if (separators.length) {
+                  const [artist, track] = title.split(separators[0]);
+                  return {
+                    artist,
+                    track
+                  };
+                }
+                else {
+                  return {
+                    artist: author.replace('VEVO', ''),
+                    track: title
+                  };
+                }
+              })(info);
+              artist = song.artist;
+              track = song.track;
+              // console.log(artist, track);
+              if (artist && track) {
+                check();
+              }
+              else {
+                msg.clickable(true, 'edit');
+                msg.displayFor('Scrobbling skipped (Unknown artist/track); Click to edit.', 20);
+                hideLove();
+              }
+            }
+          });
+          break;
+        case 'lastfm-player-state':
+          window.clearInterval(timer.id);
+          if (data.state === 1 && active) {
+            timer.id = window.setInterval(timer.update, 1000);
           }
-          else {
-            return {
-              artist: author.replace('VEVO', ''),
-              track: title
-            };
-          }
-        })(info);
-        artist = song.artist;
-        track = song.track;
-        // console.log(artist, track);
-        if (artist && track) {
-          check();
-        }
-        else {
-          msg.clickable(true, 'edit');
-          msg.displayFor('Scrobbling skipped (Unknown artist/track); Click to edit.', 20);
-          hideLove();
-        }
+          break;
+        default:
+          console.log('unknown method ' + data.method);
       }
-    });
-  }
-  else if (data && data.method === 'lastfm-player-state') {
-    window.clearInterval(timer.id);
-    if (data.state === 1 && active) {
-      timer.id = window.setInterval(timer.update, 1000);
     }
-  }
-});
+  })
+}
+
+
+document.addEventListener('DOMContentLoaded', registerToMessages);

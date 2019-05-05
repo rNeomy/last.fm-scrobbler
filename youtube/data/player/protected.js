@@ -2,16 +2,28 @@
 
 document.documentElement.appendChild(Object.assign(document.createElement('script'), {
   textContent: `
+    const isYoutube = window.location.toString().startsWith('https://www.youtube.com');
+
     var yttools = window.yttools || [];
 
     yttools.lastfm = {};
 
-    yttools.push(player => {
+    yttools.registerPlayer = player => {
       let fetched = '';
 
       yttools.lastfm.player = player;
 
       const onStateChange = state => {
+
+        const {data} = state;
+        if(!isYoutube) {
+          state = data;
+        }
+
+        if(!isYoutube && (state === 0 || state === -1)) {
+          fetched = 'true';
+        }  
+
         if (fetched && state === 1) {
           window.postMessage({
             method: 'lastfm-data-fetched',
@@ -35,10 +47,10 @@ document.documentElement.appendChild(Object.assign(document.createElement('scrip
       });
 
       player.addEventListener('onStateChange', onStateChange);
-    });
+    };
 
     function onYouTubePlayerReady(player) {
-      yttools.forEach(c => c(player));
+      yttools.registerPlayer(player);
     }
 
     {
@@ -66,6 +78,23 @@ document.documentElement.appendChild(Object.assign(document.createElement('scrip
           }
         });
       });
+
+      function registerEmbeddedPlayer() {
+        new Promise((resolve, reject) => {
+          var isPlayerReady = () => {
+            if (typeof window.ytplayer !== 'undefined') {
+              if (ytplayer.o.onReady === true) {
+                yttools.registerPlayer(ytplayer);
+                resolve();
+              }
+            } else {
+              setTimeout(isPlayerReady, 1000);
+            }
+          };
+          setTimeout(isPlayerReady, 1000);
+        });
+      }
+      registerEmbeddedPlayer();
     }
   `
 }));
