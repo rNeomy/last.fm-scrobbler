@@ -4,6 +4,15 @@ document.documentElement.appendChild(Object.assign(document.createElement('scrip
   textContent: `
     const isYoutube = window.location.toString().startsWith('https://www.youtube.com');
 
+    const youtubeState = {
+      UNSTARTED: -1,
+      ENDED: 0,
+      PLAYING: 1,
+      PAUSED: 2,
+      BUFFERING: 3,
+      VIDEO_CUED: 5
+    };
+
     var yttools = window.yttools || [];
 
     yttools.lastfm = {};
@@ -20,11 +29,11 @@ document.documentElement.appendChild(Object.assign(document.createElement('scrip
           state = data;
         }
 
-        if(!isYoutube && (state === 0 || state === -1)) {
+        if(!isYoutube && (state === youtubeState.ENDED || state === youtubeState.UNSTARTED)) {
           fetched = 'true';
         }  
 
-        if (fetched && state === 1) {
+        if (fetched && state === youtubeState.PLAYING) {
           window.postMessage({
             method: 'lastfm-data-fetched',
             info: player.getVideoData(),
@@ -41,8 +50,8 @@ document.documentElement.appendChild(Object.assign(document.createElement('scrip
 
       document.addEventListener('yt-page-data-fetched', e => {
         fetched = e.detail;
-        if (player.getPlayerState() === 1) {
-          onStateChange(1);
+        if (player.getPlayerState() === youtubeState.PLAYING) {
+          onStateChange(youtubeState.PLAYING);
         }
       });
 

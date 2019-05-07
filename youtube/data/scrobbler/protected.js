@@ -1,5 +1,14 @@
 'use strict';
 
+const youtubeState = {
+  UNSTARTED: -1,
+  ENDED: 0,
+  PLAYING: 1,
+  PAUSED: 2,
+  BUFFERING: 3,
+  VIDEO_CUED: 5
+};
+
 var artist;
 var track;
 var category = 'Music';
@@ -190,7 +199,6 @@ var registerToMessages = () => {
     if (data && data.method) {
       switch (data.method) {
         case 'lastfm-data-fetched':
-          console.log('lastfm-data-fetched');
           init();
           const {
             page,
@@ -260,7 +268,7 @@ var registerToMessages = () => {
           break;
         case 'lastfm-player-state':
           window.clearInterval(timer.id);
-          if (data.state === 1 && active) {
+          if (data.state === youtubeState.PLAYING && active) {
             timer.id = window.setInterval(timer.update, 1000);
           }
           break;
