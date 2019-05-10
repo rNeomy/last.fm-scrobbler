@@ -9,6 +9,8 @@ const youtubeState = {
   VIDEO_CUED: 5
 };
 
+const isYoutube = window.location.toString().startsWith('https://www.youtube.com');
+
 var artist;
 var track;
 var category = 'Music';
@@ -73,6 +75,13 @@ var editor = {
     const parent = document.querySelector('ytd-watch #player-container') ||
       document.querySelector('ytd-player #container') || document.querySelector('#videotitle');
     editor.form = document.createElement('form');
+
+    if(!isYoutube) {
+      editor.form.addEventListener('keydown', event => {
+        event.stopPropagation(); // disable hotkeys while filling details
+      });
+    }
+    
     if (parent) {
       const aInput = Object.assign(document.createElement('input'), {
         'type': 'text',
@@ -206,7 +215,6 @@ var registerToMessages = () => {
           } = data;
           duration = data.duration;
 
-          const isYoutube = window.location.toString().startsWith('https://www.youtube.com');
           const canCheckCategory = isYoutube;
           try {
             category = page.pageData.response
