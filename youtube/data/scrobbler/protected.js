@@ -280,6 +280,9 @@ var registerToMessages = () => {
             timer.id = window.setInterval(timer.update, 1000);
           }
           break;
+        case 'track.love': 
+        case 'track.unlove':
+          break;
         default:
           console.log('unknown method ' + data.method);
       }

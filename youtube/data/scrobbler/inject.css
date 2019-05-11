@@ -21,6 +21,10 @@
   display: none !important;
 }
 
+.ytp-svg-fill {
+  fill: #fff;
+}
+
 .scrobbler-editor {
   font-size: 12px;
   white-space: nowrap;
