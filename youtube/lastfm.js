@@ -14,8 +14,11 @@ lastfm.fetch = obj => {
   }
   obj.format = 'json';
 
+  const {sk, ...noSk} = obj;
+  const sentVars = (obj.method !== 'track.getInfo') ? obj : noSk;
+
   const url = 'https://ws.audioscrobbler.com/2.0/?' +
-    Object.entries(obj).map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&');
+    Object.entries(sentVars).map(([k, v]) => k + '=' + encodeURIComponent(v)).join('&');
 
   return fetch(url, {
     method: 'POST'
