@@ -14,11 +14,22 @@
     }
   </style>
   <body>
-    <label><input type="checkbox" id="checkCategory"> Only scrobble to Last.fm on the following categories</label>
+    <table width="100%">
+      <tr>
+        <td><input type="checkbox" id="manualCheck"></td>
+        <td><label for="manualCheck">Check manually entered song details with last.fm database before scrobbling them</label></td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" id="checkCategory"></td>
+        <td><label for="checkCategory">Only scrobble to Last.fm on the following categories</label></td>
+      </tr>
+    </table>
+
     <h4>Supported categories</h4>
     <input type="text" id="categories" placeholder="e.g.: Music, Entertainment">
 
     <p>
+      <input type="button" id="support" value="Support Development">
       <input type="button" id="reset" value="Reset">
       <input type="button" id="save" value="Save">
       <span id="info"></span>

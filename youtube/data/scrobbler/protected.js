@@ -23,14 +23,8 @@ var timer = {
   }
 };
 
-function check() {
-  // Check if this track is indexed or not
-  chrome.runtime.sendMessage({
-    method: 'track.getInfo',
-    artist,
-    track,
-    duration
-  }, resp => {
+function check(info, period) {
+  const next = resp => {
     if (resp.track) {
       active = true;
       msg.clickable(true, 'track.scrobble');
@@ -47,7 +41,7 @@ Category: ${category}`);
         src: chrome.runtime.getURL('/data/love/unprotected.js?loved=' + resp.track.userloved)
       }));
       // install track observer
-      timer.duration = Math.min(Math.round(duration) - 10, 4 * 60);
+      timer.duration = period || Math.min(Math.round(duration) - 10, 4 * 60);
       timer.id = window.setInterval(timer.update, 1000);
     }
     else {
@@ -55,7 +49,19 @@ Category: ${category}`);
       msg.displayFor(`Scrobbling skipped (${resp.message}). Click to edit`, 20);
       hideLove();
     }
-  });
+  };
+  if (info) {
+    next(info);
+  }
+  else {
+    // Check if this track is indexed or not
+    chrome.runtime.sendMessage({
+      method: 'track.getInfo',
+      artist,
+      track,
+      duration
+    }, next);
+  }
 }
 
 var editor = {
@@ -87,8 +93,13 @@ var editor = {
         track = tInput.value;
         artist = aInput.value;
         editor.remove();
-        msg.display('Analyzing...');
-        check();
+        chrome.storage.local.get({
+          manualCheck: false
+        }, prefs => prefs.manualCheck ? check() : check({
+          track: {
+            userloved: false
+          }
+        }, 30));
       });
       parent.appendChild(editor.form);
       aInput.focus();
@@ -138,7 +149,6 @@ msg = (div => {
 
       if (parent) {
         parent.appendChild(div);
-        console.log(div);
       }
       else {
         console.error('Cannot install msgbox', 'parent not found');
