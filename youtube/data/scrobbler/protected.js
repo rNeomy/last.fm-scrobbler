@@ -160,8 +160,8 @@ msg = (div => {
       div.textContent = '';
       window.clearTimeout(msg.id);
     },
-    displayFor: (msg, time = 4) => {
-      div.textContent = msg;
+    displayFor: (m, time = 4) => {
+      div.textContent = m;
       window.clearTimeout(msg.id);
       msg.id = window.setTimeout(() => div.textContent = '', time * 1000);
     },
@@ -236,17 +236,29 @@ window.addEventListener('message', ({data}) => {
             };
           }
         })(info);
-        artist = song.artist;
-        track = song.track;
-        // console.log(artist, track);
-        if (artist && track) {
-          check();
-        }
-        else {
-          msg.clickable(true, 'edit');
-          msg.displayFor('Scrobbling skipped (Unknown artist/track); Click to edit.', 20);
-          hideLove();
-        }
+        const filter = track => track
+          .replace(/\[.+\]/, '')
+          .trim();
+        chrome.storage.local.get({
+          'filter': true
+        }, prefs => {
+          track = song.track;
+          if (prefs.filter) {
+            artist = filter(song.artist);
+          }
+          else {
+            artist = song.artist;
+          }
+          // console.log(artist, track);
+          if (artist && track) {
+            check();
+          }
+          else {
+            msg.clickable(true, 'edit');
+            msg.displayFor('Scrobbling skipped (Unknown artist/track); Click to edit.', 20);
+            hideLove();
+          }
+        });
       }
     });
   }

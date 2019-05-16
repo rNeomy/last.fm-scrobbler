@@ -12,6 +12,9 @@
     h4 {
       margin: 10px 0 5px 0;
     }
+    td:first-child {
+      vertical-align: top;
+    }
   </style>
   <body>
     <table width="100%">
@@ -20,13 +23,19 @@
         <td><label for="manualCheck">Check manually entered song details with last.fm database before scrobbling them</label></td>
       </tr>
       <tr>
+        <td><input type="checkbox" id="filter"></td>
+        <td><label for="filter">Try to clean the song title (e.g. remove text in brackets, ...) before validating by last.fm</label></td>
+      </tr>
+      <tr>
         <td><input type="checkbox" id="checkCategory"></td>
-        <td><label for="checkCategory">Only scrobble to Last.fm on the following categories</label></td>
+        <td>
+          <label for="checkCategory">Only scrobble to Last.fm on the following categories</label>
+          <h4>Supported categories</h4>
+          <input type="text" id="categories" placeholder="e.g.: Music, Entertainment">
+        </td>
       </tr>
     </table>
 
-    <h4>Supported categories</h4>
-    <input type="text" id="categories" placeholder="e.g.: Music, Entertainment">
 
     <p>
       <input type="button" id="support" value="Support Development">

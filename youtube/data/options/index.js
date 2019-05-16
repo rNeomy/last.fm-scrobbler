@@ -5,9 +5,11 @@ var info = document.getElementById('info');
 var restore = () => chrome.storage.local.get({
   categories: ['Música', 'Music', 'Entertainment'],
   checkCategory: true,
-  manualCheck: false
+  manualCheck: false,
+  filter: true
 }, prefs => {
   document.getElementById('checkCategory').checked = prefs.checkCategory;
+  document.getElementById('filter').checked = prefs.filter;
   document.getElementById('manualCheck').checked = prefs.manualCheck;
   document.getElementById('categories').value = prefs.categories.join(', ');
 });
@@ -15,6 +17,7 @@ restore();
 
 document.getElementById('save').addEventListener('click', () => {
   chrome.storage.local.set({
+    filter: document.getElementById('filter').checked,
     checkCategory: document.getElementById('checkCategory').checked,
     manualCheck: document.getElementById('manualCheck').checked,
     categories: document.getElementById('categories').value.split(/\s*,\s*/).filter((s, i, l) => l.indexOf(s) === i)
@@ -40,5 +43,5 @@ document.getElementById('reset').addEventListener('click', e => {
 });
 // support
 document.getElementById('support').addEventListener('click', () => chrome.tabs.create({
-  url: chrome.runtime.getManifest().homepage_url + '?rd=donate'
+  url: chrome.runtime.getManifest().homepage_url + '&rd=donate'
 }));
