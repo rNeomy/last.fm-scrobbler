@@ -12,13 +12,14 @@ chrome.runtime.onMessage.addListener((request, sender, response) => {
   }
 });
 
+
 {
   const {onInstalled, setUninstallURL, getManifest} = chrome.runtime;
   const {name, version} = getManifest();
   const page = getManifest().homepage_url;
   onInstalled.addListener(({reason, previousVersion}) => {
     chrome.storage.local.get({
-      'faqs': /Firefox/.test(navigator.userAgent) === false,
+      'faqs': true,
       'last-update': 0
     }, prefs => {
       if (reason === 'install' || (prefs.faqs && reason === 'update')) {
