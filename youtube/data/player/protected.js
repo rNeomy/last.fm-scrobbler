@@ -2,17 +2,38 @@
 
 document.documentElement.appendChild(Object.assign(document.createElement('script'), {
   textContent: `
+    const isYoutube = window.location.toString().startsWith('https://www.youtube.com');
+
+    const youtubeState = {
+      UNSTARTED: -1,
+      ENDED: 0,
+      PLAYING: 1,
+      PAUSED: 2,
+      BUFFERING: 3,
+      VIDEO_CUED: 5
+    };
+
     var yttools = window.yttools || [];
 
     yttools.lastfm = {};
 
-    yttools.push(player => {
+    yttools.registerPlayer = player => {
       let fetched = '';
 
       yttools.lastfm.player = player;
 
       const onStateChange = state => {
-        if (fetched && state === 1) {
+
+        const {data} = state;
+        if(!isYoutube) {
+          state = data;
+        }
+
+        if(!isYoutube && (state === youtubeState.ENDED || state === youtubeState.UNSTARTED)) {
+          fetched = 'true';
+        }  
+
+        if (fetched && state === youtubeState.PLAYING) {
           window.postMessage({
             method: 'lastfm-data-fetched',
             info: player.getVideoData(),
@@ -29,16 +50,16 @@ document.documentElement.appendChild(Object.assign(document.createElement('scrip
 
       document.addEventListener('yt-page-data-fetched', e => {
         fetched = e.detail;
-        if (player.getPlayerState() === 1) {
-          onStateChange(1);
+        if (player.getPlayerState() === youtubeState.PLAYING) {
+          onStateChange(youtubeState.PLAYING);
         }
       });
 
       player.addEventListener('onStateChange', onStateChange);
-    });
+    };
 
     function onYouTubePlayerReady(player) {
-      yttools.forEach(c => c(player));
+      yttools.registerPlayer(player);
     }
 
     {
@@ -66,6 +87,23 @@ document.documentElement.appendChild(Object.assign(document.createElement('scrip
           }
         });
       });
+
+      function registerEmbeddedPlayer() {
+        new Promise((resolve, reject) => {
+          var isPlayerReady = () => {
+            if (typeof window.ytplayer !== 'undefined') {
+              if (ytplayer.o.onReady === true) {
+                yttools.registerPlayer(ytplayer);
+                resolve();
+              }
+            } else {
+              setTimeout(isPlayerReady, 1000);
+            }
+          };
+          setTimeout(isPlayerReady, 1000);
+        });
+      }
+      registerEmbeddedPlayer();
     }
   `
 }));

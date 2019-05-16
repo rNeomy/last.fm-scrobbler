@@ -2,7 +2,7 @@
 {
   const NSPACE = 'http://www.w3.org/2000/svg';
 
-  const settings = document.querySelector('.ytp-settings-button');
+  const settings = isYoutube ? document.querySelector('.ytp-settings-button') : document.querySelector('.scrobbler-div');
   if (settings) {
     const button = document.querySelector('.ytp-love-button');
     if (button) {
@@ -22,8 +22,9 @@
              'c1.4532-1.6225,3.4567-2.4549,5.4884-2.4549c1.7213,0,3.4567,0.6066,4.8535,1.8341L23.99291,15.87187');
 
       const svg = document.createElementNS(NSPACE, 'svg');
-      svg.setAttribute('height', '100%');
-      svg.setAttribute('width', '100%');
+      const widthHeight = isYoutube ? '100%' : '1em';
+      svg.setAttribute('height', widthHeight);
+      svg.setAttribute('width', widthHeight);
       svg.setAttribute('version', '1.1');
       svg.setAttribute('viewBox', '0 0 48 48');
 
