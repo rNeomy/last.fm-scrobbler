@@ -1,8 +1,16 @@
 'use strict';
 
+const youtubeState = {
+  UNSTARTED: -1,
+  ENDED: 0,
+  PLAYING: 1,
+  PAUSED: 2,
+  BUFFERING: 3,
+  VIDEO_CUED: 5
+};
+
 var artist;
 var track;
-var category = 'Music';
 var duration;
 var start;
 var msg;
@@ -24,6 +32,7 @@ var timer = {
 };
 
 function check(info, period) {
+  // Check if this track is indexed or not
   const next = resp => {
     if (resp.track) {
       active = true;
@@ -34,8 +43,7 @@ function check(info, period) {
 
 Artist: ${artist}
 Track: ${track}
-Duration: ${duration}
-Category: ${category}`);
+Duration: ${duration}`);
       // install the love button
       document.documentElement.appendChild(Object.assign(document.createElement('script'), {
         src: chrome.runtime.getURL('/data/love/unprotected.js?loved=' + resp.track.userloved)
@@ -67,9 +75,13 @@ Category: ${category}`);
 var editor = {
   form: null,
   init: () => {
-    const parent = document.querySelector('ytd-watch #player-container') ||
-      document.querySelector('ytd-player #container');
+    const parent = document.querySelector('#videotitle');
     editor.form = document.createElement('form');
+
+    editor.form.addEventListener('keydown', event => {
+      event.stopPropagation(); // disable hotkeys while filling details
+      });
+    
     if (parent) {
       const aInput = Object.assign(document.createElement('input'), {
         'type': 'text',
@@ -144,12 +156,11 @@ msg = (div => {
   return {
     init: () => {
       div.classList.add('scrobbler-div');
-      const parent = document.querySelector('ytd-watch #player-container') ||
-        document.querySelector('ytd-player #container');
+      const parent = document.querySelector('.videowrapper');
 
       if (parent) {
-        parent.appendChild(div);
-      }
+        parent.insertAdjacentElement('afterend', div);
+      } 
       else {
         console.error('Cannot install msgbox', 'parent not found');
       }
@@ -160,8 +171,8 @@ msg = (div => {
       div.textContent = '';
       window.clearTimeout(msg.id);
     },
-    displayFor: (m, time = 4) => {
-      div.textContent = m;
+    displayFor: (msg, time = 4) => {
+      div.textContent = msg;
       window.clearTimeout(msg.id);
       msg.id = window.setTimeout(() => div.textContent = '', time * 1000);
     },
@@ -192,81 +203,78 @@ function hideLove() {
   }, '*');
 }
 
-window.addEventListener('message', ({data}) => {
-  if (data && data.method === 'lastfm-data-fetched') {
-    init();
-    const {page, info} = data;
-    duration = data.duration;
+var registerToMessages = () => {
+  window.addEventListener('message', ({data}) => {
+    if (data && data.method) {
+      switch (data.method) {
+        case 'lastfm-data-fetched':
+          init();
+          const {
+            info
+          } = data;
+          duration = data.duration;
 
-    try {
-      category = page.pageData.response
-        .contents.twoColumnWatchNextResults.results
-        .results.contents[1].videoSecondaryInfoRenderer
-        .metadataRowContainer.metadataRowContainerRenderer
-        .rows['0'].metadataRowRenderer.contents['0'].runs['0'].text;
-    }
-    catch (e) {}
-    chrome.storage.local.get({
-      categories: ['Música', 'Music', 'Entertainment'],
-      checkCategory: true
-    }, prefs => {
-      if (prefs.categories.indexOf(category) === -1 && prefs.checkCategory) {
-        msg.displayFor(`Scrobbling skipped ("${category}" category is not listed)`);
-        hideLove();
-      }
-      else if (duration <= 30) {
-        msg.displayFor('Scrobbling skipped (Less than 30 seconds)');
-        hideLove();
-      }
-      else {
-        const song = (({title, author}) => {
-          title = title.replace(/^\[[^\]]+\]\s*-*\s*/i, '');
-          const separators = [
-            ' -- ', '--', ' - ', ' – ', ' — ',
-            ' // ', '-', '–', '—', ':', '|', '///', '/'
-          ].filter(s => title.indexOf(s) !== -1);
-          if (separators.length) {
-            const [artist, track] = title.split(separators[0]);
-            return {artist, track};
-          }
-          else {
-            return {
-              artist: author.replace('VEVO', ''),
-              track: title
-            };
-          }
-        })(info);
-        const filter = track => track
-          .replace(/\[.+\]|\(.+\)/g, '')
-          .trim();
-        chrome.storage.local.get({
-          'filter': true
-        }, prefs => {
-          if (prefs.filter) {
-            artist = filter(song.artist);
-            track = filter(song.track);
-          }
-          else {
-            artist = song.artist;
-            track = song.track;
-          }
-          // console.log(artist, track);
-          if (artist && track) {
-            check();
-          }
-          else {
-            msg.clickable(true, 'edit');
-            msg.displayFor('Scrobbling skipped (Unknown artist/track); Click to edit.', 20);
+          if (duration <= 30) {
+            msg.displayFor('Scrobbling skipped (Less than 30 seconds)');
             hideLove();
           }
-        });
+          else {
+            const song = (({title, author}) => {
+              title = title.replace(/^\[[^\]]+\]\s*-*\s*/i, '');
+              const separators = [
+                ' -- ', '--', ' - ', ' – ', ' — ',
+                ' // ', '-', '–', '—', ':', '|', '///', '/'
+              ].filter(s => title.indexOf(s) !== -1);
+              if (separators.length) {
+                const [artist, track] = title.split(separators[0]);
+                return {artist, track};
+              }
+              else {
+                return {
+                  artist: author.replace('VEVO', ''),
+                  track: title
+                };
+              }
+            })(info);
+            const filter = track => track
+            .replace(/\[.+\]|\(.+\)/, '')
+            .trim();
+            chrome.storage.local.get({
+              'filter': true
+            }, prefs => {
+              if (prefs.filter) {
+                artist = filter(song.artist);
+                track = filter(song.track);
+              }
+              else {
+                artist = song.artist;
+              }
+              // console.log(artist, track);
+              if (artist && track) {
+                check();
+              }
+              else {
+                msg.clickable(true, 'edit');
+                msg.displayFor('Scrobbling skipped (Unknown artist/track); Click to edit.', 20);
+                hideLove();
+              }
+            });
+          }
+          break;
+        case 'lastfm-player-state':
+          window.clearInterval(timer.id);
+          if (data.state === youtubeState.PLAYING && active) {
+            timer.id = window.setInterval(timer.update, 1000);
+          }
+          break;
+        case 'track.love': 
+        case 'track.unlove':
+          break;
+        default:
+          console.log('unknown method ' + data.method);
       }
-    });
-  }
-  else if (data && data.method === 'lastfm-player-state') {
-    window.clearInterval(timer.id);
-    if (data.state === 1 && active) {
-      timer.id = window.setInterval(timer.update, 1000);
     }
-  }
-});
+  })
+}
+
+document.addEventListener('DOMContentLoaded', registerToMessages);

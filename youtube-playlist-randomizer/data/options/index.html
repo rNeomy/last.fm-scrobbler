@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Last.fm Scrobbler :: Options</title>
+  </head>
+  <style type="text/css">
+    input[type=text] {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    h4 {
+      margin: 10px 0 5px 0;
+    }
+    td:first-child {
+      vertical-align: top;
+    }
+  </style>
+  <body>
+    <table width="100%">
+      <tr>
+        <td><input type="checkbox" id="manualCheck"></td>
+        <td><label for="manualCheck">Check manually entered song details with last.fm database before scrobbling them</label></td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" id="filter"></td>
+        <td><label for="filter">Try to clean the song title (e.g. remove text in brackets, ...) before validating by last.fm</label></td>
+      </tr>
+    </table>
+
+
+    <p>
+      <input type="button" id="support" value="Support Development">
+      <input type="button" id="reset" value="Reset">
+      <input type="button" id="save" value="Save">
+      <span id="info"></span>
+    </p>
+    <script src="index.js"></script>
+  </body>
+</html>

@@ -1,0 +1,56 @@
+.scrobbler-div {
+  font-size: 12px;
+  white-space: nowrap;
+  padding: 5px;
+  background-color: #212121 !important;
+  color: #fff !important;
+  float: right;
+}
+.scrobbler-div:empty {
+  display: none;
+}
+.scrobbler-div[data-clickable=true] {
+  cursor: pointer;
+}
+.scrobbler-div[data-clickable=false] {
+  pointer-events: none;
+  cursor: default;
+}
+
+.ytp-love-button[data-hidden=true] {
+  display: none !important;
+}
+
+.ytp-svg-fill {
+  fill: #fff;
+}
+
+.scrobbler-editor {
+  font-size: 12px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  background-color: #212121 !important;
+  color: #fff !important;
+}
+
+.scrobbler-editor input[type=submit] {
+  border: solid 1px #ccc;
+  border-radius: 0;
+  cursor: pointer;
+}
+.scrobbler-editor input[type=text] {
+  flex: 1;
+  outline: none;
+  background-color: rgba(37, 37, 37, 0.05) !important;
+  border: none;
+  color: #fff;
+  background-color: rgba(255,255,255, 0.10) !important;
+  padding: 5px;
+}
+
+.scrobbler-editor input {
+  box-sizing: border-box;
+  margin-left: 5px;
+}
