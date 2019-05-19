@@ -237,7 +237,7 @@ var registerToMessages = () => {
               }
             })(info);
             const filter = track => track
-            .replace(/\[.+\]|\(.+\)/, '')
+            .replace(/\[.+\]|\(.+\)/g, '')
             .trim();
             chrome.storage.local.get({
               'filter': true
