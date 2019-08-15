@@ -55,7 +55,7 @@ document.documentElement.appendChild(Object.assign(document.createElement('scrip
         new Promise((resolve, reject) => {
           var isPlayerReady = () => {
             if (typeof window.ytplayer !== 'undefined') {
-              if (ytplayer.o.onReady === true) {
+              if (ytplayer.w.onReady === true) {
                 yttools.registerPlayer(ytplayer);
                 resolve();
               }
