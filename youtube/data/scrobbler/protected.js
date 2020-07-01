@@ -1,8 +1,12 @@
 'use strict';
 
+const defaults = {
+  minTime: 240
+};
 var artist;
 var track;
 var category = 'Music';
+var minTime = defaults.minTime;
 var duration;
 var start;
 var msg;
@@ -23,6 +27,10 @@ var timer = {
   }
 };
 
+chrome.storage.local.get(['minTime'], function (config) {
+  minTime = config.minTime || defaults.minTime;
+})
+
 function check(info, period) {
   const next = resp => {
     if (resp.track) {
@@ -41,7 +49,7 @@ Category: ${category}`);
         src: chrome.runtime.getURL('/data/love/unprotected.js?loved=' + resp.track.userloved)
       }));
       // install track observer
-      timer.duration = period || Math.min(Math.round(duration) - 10, 4 * 60);
+      timer.duration = period || Math.min(Math.round(duration) - 10, minTime);
       timer.id = window.setInterval(timer.update, 1000);
     }
     else {
@@ -127,7 +135,7 @@ msg = (div => {
         method: 'track.scrobble',
         track,
         artist,
-        timestamp: Math.max(start.getTime(), (new Date()).getTime() - 4 * 60 * 1000) / 1000
+        timestamp: Math.max(start.getTime(), (new Date()).getTime() - minTime * 1000) / 1000
       }, resp => {
         // console.log('track.scrobble', resp);
         active = false;

@@ -6,12 +6,14 @@ var restore = () => chrome.storage.local.get({
   categories: ['Música', 'Music', 'Entertainment'],
   checkCategory: true,
   manualCheck: false,
-  filter: true
+  filter: true,
+  minTime: 240
 }, prefs => {
   document.getElementById('checkCategory').checked = prefs.checkCategory;
   document.getElementById('filter').checked = prefs.filter;
   document.getElementById('manualCheck').checked = prefs.manualCheck;
   document.getElementById('categories').value = prefs.categories.join(', ');
+  document.getElementById('minTime').value = prefs.minTime;
 });
 restore();
 
@@ -20,7 +22,8 @@ document.getElementById('save').addEventListener('click', () => {
     filter: document.getElementById('filter').checked,
     checkCategory: document.getElementById('checkCategory').checked,
     manualCheck: document.getElementById('manualCheck').checked,
-    categories: document.getElementById('categories').value.split(/\s*,\s*/).filter((s, i, l) => l.indexOf(s) === i)
+    categories: document.getElementById('categories').value.split(/\s*,\s*/).filter((s, i, l) => l.indexOf(s) === i),
+    minTime: +document.getElementById('minTime').value
   }, () => {
     info.textContent = 'Options saved';
     window.setTimeout(() => info.textContent = '', 750);
