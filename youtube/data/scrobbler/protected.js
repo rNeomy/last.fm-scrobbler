@@ -23,6 +23,26 @@ var timer = {
   }
 };
 
+const clearString = originalTitle => originalTitle
+  .replace('VEVO','')
+  .replace(/\(?\[?Official\)?\]?/ig,'')
+  .replace(/\(?\[?HD\)?\]?/ig,'')
+  .replace(/\(?\[?Official Version\)?\]?/ig,'')
+  .replace(/\(?\[?Official Audio\)?\]?/ig,'')
+  .replace(/\(?\[?Official Video\)?\]?/ig,'')
+  .replace(/\(?\[?Official Music Video\)?\]?/ig,'')
+  .replace(/\(?\[?Official Music 4K Video\)?\]?/ig,'')
+  .replace(/\(?\[?Official 4K Music Video\)?\]?/ig,'')
+  .replace(/\(?\[?Official Music Video HD\)?\]?/ig,'')
+  .replace(/\(?\[?Official Lyric Video\)?\]?/ig,'')
+  .replace(/\(?\[?Official Promo Video\)?\]?/ig,'')
+  .replace(/\(?\[?Clipe oficial\)?\]?/ig,'')
+  .replace(/\(?\[?videoclipe oficial\)?\]?/ig,'')
+  .replace(/\(?\[?Clip Officiel\)?\]?/ig,'')
+  .replace(/\(?\[?Music Video\)?\]?/ig,'')
+  .replace(/\(?\[?Official MV\)?\]?/ig,'')
+  .trim();
+
 function check(info, period) {
   const next = resp => {
     if (resp.track) {
@@ -226,13 +246,15 @@ window.addEventListener('message', ({data}) => {
             ' // ', '-', '–', '—', ':', '|', '///', '/'
           ].filter(s => title.indexOf(s) !== -1);
           if (separators.length) {
-            const [artist, track] = title.split(separators[0]);
+            let [artist, track] = title.split(separators[0]);
+            artist = clearString(artist);
+            track = clearString(track);
             return {artist, track};
           }
           else {
             return {
-              artist: author.replace('VEVO', ''),
-              track: title
+              artist: clearString(author),
+              track: clearString(title)
             };
           }
         })(info);
