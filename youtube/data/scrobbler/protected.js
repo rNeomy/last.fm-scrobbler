@@ -206,16 +206,56 @@ function init() {
 
   window.clearInterval(timer.id);
 }
+
 function hideLove() {
   window.postMessage({
     method: 'lastfm-hide-love'
   }, '*');
 }
 
+let timestampsOnDescription = false;
+let timestampArray = [];
+const handleDescription = description => {
+  description.split("\n").map(handleDescriptionLine);
+  console.log(timestampArray);
+}
+
+const handleDescriptionLine = line => {
+  const possibleTimePart = line.split(' ')[0];
+  if (isValidTime(possibleTimePart)) {
+    timestampsOnDescription = true;
+    let lineWithoutTimestamp = line.split(' ').slice(1).join(' ')
+    let splitDash = lineWithoutTimestamp.split('-')
+    let timestampArtist = clearString(splitDash[0]);
+    let timestampTrack = clearString(splitDash[1]);
+    timestampArray.push({
+      timestamp: parseValidTime(possibleTimePart),
+      artist: timestampArtist,
+      track: timestampTrack
+    });
+  }
+}
+
+// hh:mm:ss, h:mm:ss, mm:ss or m:ss are accepted
+const validTimeRegex = /^(\d?\d\:)?\d?\d\:\d\d$/;
+const isValidTime = timeString => validTimeRegex.test(timeString);
+
+const parseValidTime = timeString => {
+  let timeParts = timeString.split(':');
+  let seconds = timeParts[timeParts.length - 1];
+  let minutes = timeParts[timeParts.length - 2];
+  let hours = timeParts[timeParts.length - 3] || 0;
+  return parseInt(seconds, 10) + 
+    (parseInt(minutes, 10) * 60) +
+    (parseInt(hours, 10) * 60 * 60);
+}
+
 window.addEventListener('message', ({data}) => {
   if (data && data.method === 'lastfm-data-fetched') {
     init();
     const {page, info} = data;
+    console.log('data', data);
+    handleDescription(page.pageData.playerResponse.videoDetails.shortDescription);
     duration = data.duration;
 
     try {
@@ -237,6 +277,8 @@ window.addEventListener('message', ({data}) => {
       else if (duration <= 30) {
         msg.displayFor('Scrobbling skipped (Less than 30 seconds)');
         hideLove();
+      } else if (timestampsOnDescription) {
+        msg.displayFor('Will scrobble songs from timestamp. Notice it does not support pausing / forward so far.');
       }
       else {
         const song = (({title, author}) => {
