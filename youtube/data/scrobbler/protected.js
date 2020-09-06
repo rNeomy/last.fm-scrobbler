@@ -24,6 +24,7 @@ var timer = {
 };
 
 const clearString = originalTitle => originalTitle
+  .replace(/^\- /,'')
   .replace('VEVO','')
   .replace(/\(?\[?Official\)?\]?/ig,'')
   .replace(/\(?\[?HD\)?\]?/ig,'')
@@ -41,6 +42,7 @@ const clearString = originalTitle => originalTitle
   .replace(/\(?\[?Clip Officiel\)?\]?/ig,'')
   .replace(/\(?\[?Music Video\)?\]?/ig,'')
   .replace(/\(?\[?Official MV\)?\]?/ig,'')
+  .replace(/\(?\[?\d?\d?\d?\d?\s?Full Album\)?\]?/ig,'')
   .trim();
 
 function check(info, period) {
@@ -215,31 +217,54 @@ function hideLove() {
 }
 
 let tracklistOnDescription = false;
-let tracklistArray = [];
+let tracklistArray;
 const TRACKLIST_SCROBBLE_SECONDS_BEFORE_END = 10;
-const handleDescription = (description, duration) => {
-  description.split("\n").map(handleTracklistLine);
-  // console.log(tracklistArray);
+const handleDescription = videoDetails => {
+  tracklistArray = []; // need to clear every time parse description to don't have double elements when going to another video
+  const albumDetails = parseTracklistAlbum(videoDetails);
+  videoDetails.shortDescription.split("\n").map(line => handleTracklistLine(line, albumDetails));
   if (tracklistArray.length > 0) {
-    addEndTimesAndDurations(tracklistArray, duration);
+    addEndTimesAndDurations(tracklistArray, videoDetails.lengthSeconds);
     triggerScrobblesFromTracklist(tracklistArray);
   }
 }
 
-// notice it only supports "timestamp artist - song" format so far
-const handleTracklistLine = line => {
+const parseTracklistAlbum = videoDetails => {
+  let titleParts = videoDetails.title.split(/ \-|\| /);
+  return {
+    artistAlbum: clearString(titleParts[0]),
+    album: titleParts[1] ? clearString(titleParts[1]) : undefined
+  };
+}
+
+const handleTracklistLine = (line, albumDetails) => {
   const possibleTimePart = line.split(' ')[0];
   if (isValidTime(possibleTimePart)) {
     tracklistOnDescription = true;
     let lineWithoutTimestamp = line.split(' ').slice(1).join(' ');
     let splitDash = lineWithoutTimestamp.split(' - ');
-    let timestampArtist = clearString(splitDash[0]);
-    let timestampTrack = clearString(splitDash[1]);
-    tracklistArray.push({
+    let objToPush = {
       timestampStart: parseValidTime(possibleTimePart),
-      artist: timestampArtist,
-      track: timestampTrack
-    });
+      albumArtist: albumDetails.artistAlbum,
+    }
+    if (albumDetails.album) {
+      objToPush.album = albumDetails.album;
+    }
+    let firstPartBeforeDash = clearString(splitDash[0]);
+    let secondPartAfterDash = splitDash[1] ? clearString(splitDash[1]) : undefined;
+    if (splitDash.length === 1 || firstPartBeforeDash === '') {
+      // handles both "hh:mm track name" and "hh:mm - track name"
+      objToPush.artist = albumDetails.artistAlbum;
+      objToPush.track = firstPartBeforeDash;
+      if (firstPartBeforeDash === '') {
+        objToPush.track = secondPartAfterDash;
+      }
+    } else {
+      // handles "hh:mm artist - track"
+      objToPush.artist = firstPartBeforeDash;
+      objToPush.track = secondPartAfterDash;
+    }
+    tracklistArray.push(objToPush);
   }
 }
 
@@ -262,7 +287,7 @@ const addEndTimesAndDurations = (tracklistArray, duration) => {
   for (let i=0, l=tracklistArray.length; i<l; i++) {
     let nextSongDuration;
     if (i+1 === l) {
-      nextSongDuration = Math.floor(duration); // comes from YouTube as a float
+      nextSongDuration = parseInt(duration, 10);
     } else {
       nextSongDuration = tracklistArray[i+1].timestampStart;
     }
@@ -303,8 +328,7 @@ window.addEventListener('message', ({data}) => {
   if (data && data.method === 'lastfm-data-fetched') {
     init();
     const {page, info} = data;
-    // console.log('data', data);
-    handleDescription(page.pageData.playerResponse.videoDetails.shortDescription, data.duration);
+    handleDescription(page.pageData.playerResponse.videoDetails);
     duration = data.duration;
 
     try {
