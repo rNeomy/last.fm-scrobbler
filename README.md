@@ -1,8 +1,12 @@
 # last.fm-scrobbler
 
-A [Last.fm](https://last.fm) scrobbler for YouTube with support for chapters/tracks. Forked from https://github.com/rNeomy/last.fm-scrobbler - https://add0n.com/lastfm-tool.html
+A [Last.fm](https://last.fm) scrobbler for YouTube with support for chapters/tracks - https://add0n.com/lastfm-tool.html
 
-## Install instructions
+## Install
+  * [Google Chrome](https://chrome.google.com/webstore/detail/lastfm-scrobbler-for-yout/kjhnjfldmodoikafpfhfehngokaiegok)
+  * [Mozilla Firefox](https://addons.mozilla.org/en-GB/firefox/addon/last-fm-scrobbler-for-youtube/)
+
+## Developer Install Instructions
 
 ### Chrome/Chromium
 
