@@ -3,7 +3,7 @@
   white-space: nowrap;
   padding: 5px;
   background-color: #212121 !important;
-  color: #fff !important;
+  color: #e3e3e3 !important;
   float: right;
 }
 .scrobbler-div:empty {
@@ -31,6 +31,7 @@
   color: #fff !important;
 }
 
+.scrobbler-editor input[type=button],
 .scrobbler-editor input[type=submit] {
   border: solid 1px #ccc;
   border-radius: 0;
@@ -39,10 +40,9 @@
 .scrobbler-editor input[type=text] {
   flex: 1;
   outline: none;
-  background-color: rgba(37, 37, 37, 0.05) !important;
   border: none;
   color: #fff;
-  background-color: rgba(255,255,255, 0.10) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
   padding: 5px;
 }
 

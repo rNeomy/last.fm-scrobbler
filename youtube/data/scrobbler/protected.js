@@ -19,7 +19,7 @@ const timer = {
     if (timer.duration === 0) {
       msg.click();
     }
-    msg.display('Scrobbling in ' + timer.get() + ' seconds');
+    msg.display('Scrobbling in ' + timer.get());
   }
 };
 
@@ -64,13 +64,18 @@ function check(info, period) {
 Artist: ${artist}
 Track: ${track}
 Duration: ${duration}
-Category: ${category}`);
+Category: ${category}
+
+--
+Use Shift + Click to Edit
+Use Ctrl + Click or Command + Click to Abort Submission`);
       // install the love button
       document.documentElement.appendChild(Object.assign(document.createElement('script'), {
         src: chrome.runtime.getURL('/data/love/unprotected.js?loved=' + resp.track.userloved)
       }));
       // install track observer
       timer.duration = period || Math.min(Math.round(duration) - 10, minTime);
+      clearInterval(timer.id);
       timer.id = window.setInterval(timer.update, 1000);
     }
     else {
@@ -113,6 +118,13 @@ const editor = {
       editor.form.appendChild(document.createTextNode(' Track: '));
       editor.form.appendChild(tInput);
       editor.form.appendChild(Object.assign(document.createElement('input'), {
+        type: 'button',
+        value: 'Discard',
+        onclick() {
+          editor.remove();
+        }
+      }));
+      editor.form.appendChild(Object.assign(document.createElement('input'), {
         type: 'submit',
         value: 'Submit'
       }));
@@ -146,10 +158,18 @@ const editor = {
 };
 
 const msg = (div => {
-  div.onclick = () => {
-    const action = div.dataset.action;
+  div.onclick = e => {
+    let action = div.dataset.action;
+    if (e.shiftKey && action === 'track.scrobble') {
+      action = 'edit';
+    }
     if (action === 'track.scrobble') {
       window.clearInterval(timer.id);
+      if (e.ctrlKey || e.metaKey) {
+        active = false;
+        return msg.displayFor('Submission aborted', 0.75);
+      }
+
 
       div.textContent = 'Scrobbling ...';
       // console.log('track.scrobble', 'track', track, 'artist', artist)
@@ -167,6 +187,7 @@ const msg = (div => {
       });
     }
     else if (action === 'edit') {
+      window.clearInterval(timer.id);
       msg.clear();
       editor.init();
     }
@@ -224,133 +245,25 @@ function hideLove() {
   }, '*');
 }
 
-let tracklistOnDescription = false;
-let tracklistArray;
-const TRACKLIST_SCROBBLE_SECONDS_BEFORE_END = 10;
-const handleDescription = videoDetails => {
-  // need to clear every time parse description to don't have double elements when going to another video
-  tracklistArray = [];
-  const albumDetails = parseTracklistAlbum(videoDetails);
-  videoDetails.shortDescription.split('\n').map(line => handleTracklistLine(line, albumDetails));
-  if (tracklistArray.length > 0) {
-    addEndTimesAndDurations(tracklistArray, videoDetails.lengthSeconds);
-    triggerScrobblesFromTracklist(tracklistArray);
-  }
-};
-
-const parseTracklistAlbum = videoDetails => {
-  const titleParts = videoDetails.title.split(/ -|\| /);
-  return {
-    artistAlbum: clearString(titleParts[0]),
-    album: titleParts[1] ? clearString(titleParts[1]) : undefined
-  };
-};
-
-const handleTracklistLine = (line, albumDetails) => {
-  const possibleTimePart = line.split(' ')[0];
-  if (isValidTime(possibleTimePart)) {
-    tracklistOnDescription = true;
-    const lineWithoutTimestamp = line.split(' ').slice(1).join(' ');
-    const splitDash = lineWithoutTimestamp.split(' - ');
-    const objToPush = {
-      timestampStart: parseValidTime(possibleTimePart),
-      albumArtist: albumDetails.artistAlbum
-    };
-    if (albumDetails.album) {
-      objToPush.album = albumDetails.album;
-    }
-    const firstPartBeforeDash = clearString(splitDash[0]);
-    const secondPartAfterDash = splitDash[1] ? clearString(splitDash[1]) : undefined;
-    if (splitDash.length === 1 || firstPartBeforeDash === '') {
-      // handles both "hh:mm track name" and "hh:mm - track name"
-      objToPush.artist = albumDetails.artistAlbum;
-      objToPush.track = firstPartBeforeDash;
-      if (firstPartBeforeDash === '') {
-        objToPush.track = secondPartAfterDash;
-      }
-    }
-    else {
-      // handles "hh:mm artist - track"
-      objToPush.artist = firstPartBeforeDash;
-      objToPush.track = secondPartAfterDash;
-    }
-    tracklistArray.push(objToPush);
-  }
-};
-
-// hh:mm:ss, h:mm:ss, mm:ss or m:ss are accepted
-const validTimeRegex = /^(\d?\d:)?\d?\d:\d\d$/;
-const isValidTime = timeString => validTimeRegex.test(timeString);
-
-const parseValidTime = timeString => {
-  const timeParts = timeString.split(':');
-  const seconds = timeParts[timeParts.length - 1];
-  const minutes = timeParts[timeParts.length - 2];
-  const hours = timeParts[timeParts.length - 3] || 0;
-  return parseInt(seconds, 10) +
-    (parseInt(minutes, 10) * 60) +
-    (parseInt(hours, 10) * 60 * 60);
-};
-
-const addEndTimesAndDurations = (tracklistArray, duration) => {
-  // classic `for` to easely access next element inside a loop
-  for (let i = 0, l = tracklistArray.length; i < l; i++) {
-    let nextSongDuration;
-    if (i + 1 === l) {
-      nextSongDuration = parseInt(duration, 10);
-    }
-    else {
-      nextSongDuration = tracklistArray[i + 1].timestampStart;
-    }
-    tracklistArray[i].timestampEnd = nextSongDuration - 1;
-    tracklistArray[i].duration = tracklistArray[i].timestampEnd - tracklistArray[i].timestampStart;
-  }
-};
-
-const scrobbleFromTimestamp = tracklistObj => {
-  msg.displayFor(`Scrobbling "${tracklistObj.artist} - ${tracklistObj.track}" from tracklist...`);
-  chrome.runtime.sendMessage({
-    method: 'track.scrobble',
-    track: tracklistObj.track,
-    artist: tracklistObj.artist,
-    timestamp: Date.now() / 1000 - tracklistObj.duration
-  }, resp => {
-    // console.log('track.scrobble', resp);
-    if (resp && resp.scrobbles && resp.scrobbles['@attr'] && resp.scrobbles['@attr'].accepted > 0) {
-      msg.displayFor(`Scrobbled "${tracklistObj.artist} - ${tracklistObj.track}" from tracklist successfully.`, 30);
-    }
-    else {
-      msg.displayFor('Error on scrobbling tracklist track.');
-    }
-  });
-};
-
-const triggerScrobblesFromTracklist = tracklistArray => {
-  tracklistArray.forEach(tracklistObj => {
-    const secondsToScrobble = tracklistObj.timestampEnd - TRACKLIST_SCROBBLE_SECONDS_BEFORE_END;
-    // console.log(`setting timeout to scrobble in ${secondsToScrobble} seconds`, tracklistObj);
-    window.setTimeout(() => {
-      // console.log('scrobbleFromTimestamp', tracklistObj);
-      scrobbleFromTimestamp(tracklistObj);
-    }, secondsToScrobble * 1000);
-  });
-};
-
 window.addEventListener('message', ({data}) => {
   if (data && data.method === 'lastfm-data-fetched') {
     init();
     const {page, info} = data;
-    handleDescription(page.pageData.playerResponse.videoDetails);
     duration = data.duration;
 
     try {
-      category = page.pageData.response
+      category = page.pageData.playerResponse.microformat.playerMicroformatRenderer.category;
+    }
+    catch (e) {}
+    try {
+      category = category || page.pageData.response
         .contents.twoColumnWatchNextResults.results
         .results.contents[1].videoSecondaryInfoRenderer
         .metadataRowContainer.metadataRowContainerRenderer
         .rows['0'].metadataRowRenderer.contents['0'].runs['0'].text;
     }
     catch (e) {}
+
     chrome.storage.local.get({
       categories: ['Música', 'Music', 'Entertainment'],
       checkCategory: true
@@ -363,10 +276,9 @@ window.addEventListener('message', ({data}) => {
         msg.displayFor('Scrobbling skipped (Less than 30 seconds)');
         hideLove();
       }
-      else if (tracklistOnDescription) {
-        msg.displayFor('Will scrobble songs from timestamp. Notice it does not support pausing / forward so far.');
-      }
       else {
+        const chapter = document.querySelector('.ytp-chapter-title-content');
+        const chapterCache = [];
         const song = (({title, author}) => {
           title = title.replace(/^\[[^\]]+\]\s*-*\s*/i, '');
           const separators = [
@@ -377,6 +289,11 @@ window.addEventListener('message', ({data}) => {
             let [artist, track] = title.split(separators[0]);
             artist = clearString(artist);
             track = clearString(track);
+            // use chapter title when possible
+            if (chapter && chapter.textContent) {
+              track = clearString(chapter.textContent);
+              chapterCache.push(track);
+            }
             return {artist, track};
           }
           else {
@@ -399,9 +316,27 @@ window.addEventListener('message', ({data}) => {
           else {
             artist = song.artist;
           }
-          // console.log(artist, track);
           if (artist && track) {
             check();
+            // observe chapter changes
+            if (chapter) {
+              const observer = new MutationObserver(() => {
+                const newTrack = clearString(chapter.textContent);
+                // analyze only once
+                if (newTrack && chapterCache.indexOf(newTrack) === -1) {
+                  track = newTrack;
+                  chapterCache.push(newTrack);
+                  // clear old submission
+                  msg.clickable(false);
+                  msg.display('Analyzing...');
+                  check();
+                }
+              });
+              observer.observe(chapter, {
+                characterData: true,
+                attributes: true, childList: true, subtree: true
+              });
+            }
           }
           else {
             msg.clickable(true, 'edit');
@@ -415,7 +350,10 @@ window.addEventListener('message', ({data}) => {
   else if (data && data.method === 'lastfm-player-state') {
     window.clearInterval(timer.id);
     if (data.state === 1 && active) {
+      clearInterval(timer.id);
       timer.id = window.setInterval(timer.update, 1000);
     }
   }
 });
+
+
