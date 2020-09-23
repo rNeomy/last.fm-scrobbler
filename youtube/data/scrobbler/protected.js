@@ -3,7 +3,6 @@
 let artist;
 let track;
 let category = 'Music';
-let minTime = 240;
 let duration;
 let start;
 let active = false;
@@ -22,13 +21,6 @@ const timer = {
     msg.display('Scrobbling in ' + timer.get());
   }
 };
-
-
-chrome.storage.local.get({
-  minTime
-}, prefs => {
-  minTime = prefs.minTime;
-});
 
 const clearString = originalTitle => originalTitle
   .replace(/^- /, '')
@@ -74,9 +66,13 @@ Use Ctrl + Click or Command + Click to Abort Submission`);
         src: chrome.runtime.getURL('/data/love/unprotected.js?loved=' + resp.track.userloved)
       }));
       // install track observer
-      timer.duration = period || Math.min(Math.round(duration) - 10, minTime);
-      clearInterval(timer.id);
-      timer.id = window.setInterval(timer.update, 1000);
+      chrome.storage.local.get({
+        minTime: 240
+      }, prefs => {
+        timer.duration = period || Math.min(Math.round(duration) - 10, prefs.minTime);
+        clearInterval(timer.id);
+        timer.id = window.setInterval(timer.update, 1000);
+      });
     }
     else {
       msg.clickable(true, 'edit');
