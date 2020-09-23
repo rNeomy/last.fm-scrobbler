@@ -23,6 +23,28 @@ var timer = {
   }
 };
 
+const clearString = originalTitle => originalTitle
+  .replace(/^\- /,'')
+  .replace('VEVO','')
+  .replace(/\(?\[?Official\)?\]?/ig,'')
+  .replace(/\(?\[?HD\)?\]?/ig,'')
+  .replace(/\(?\[?Official Version\)?\]?/ig,'')
+  .replace(/\(?\[?Official Audio\)?\]?/ig,'')
+  .replace(/\(?\[?Official Video\)?\]?/ig,'')
+  .replace(/\(?\[?Official Music Video\)?\]?/ig,'')
+  .replace(/\(?\[?Official Music 4K Video\)?\]?/ig,'')
+  .replace(/\(?\[?Official 4K Music Video\)?\]?/ig,'')
+  .replace(/\(?\[?Official Music Video HD\)?\]?/ig,'')
+  .replace(/\(?\[?Official Lyric Video\)?\]?/ig,'')
+  .replace(/\(?\[?Official Promo Video\)?\]?/ig,'')
+  .replace(/\(?\[?Clipe oficial\)?\]?/ig,'')
+  .replace(/\(?\[?videoclipe oficial\)?\]?/ig,'')
+  .replace(/\(?\[?Clip Officiel\)?\]?/ig,'')
+  .replace(/\(?\[?Music Video\)?\]?/ig,'')
+  .replace(/\(?\[?Official MV\)?\]?/ig,'')
+  .replace(/\(?\[?\d?\d?\d?\d?\s?Full Album\)?\]?/ig,'')
+  .trim();
+
 function check(info, period) {
   const next = resp => {
     if (resp.track) {
@@ -123,6 +145,7 @@ msg = (div => {
       window.clearInterval(timer.id);
 
       div.textContent = 'Scrobbling ...';
+      // console.log('track.scrobble', 'track', track, 'artist', artist, 'timestamp', Math.max(start.getTime(), (new Date()).getTime() - 4 * 60 * 1000) / 1000)
       chrome.runtime.sendMessage({
         method: 'track.scrobble',
         track,
@@ -186,16 +209,126 @@ function init() {
 
   window.clearInterval(timer.id);
 }
+
 function hideLove() {
   window.postMessage({
     method: 'lastfm-hide-love'
   }, '*');
 }
 
+let tracklistOnDescription = false;
+let tracklistArray;
+const TRACKLIST_SCROBBLE_SECONDS_BEFORE_END = 10;
+const handleDescription = videoDetails => {
+  tracklistArray = []; // need to clear every time parse description to don't have double elements when going to another video
+  const albumDetails = parseTracklistAlbum(videoDetails);
+  videoDetails.shortDescription.split("\n").map(line => handleTracklistLine(line, albumDetails));
+  if (tracklistArray.length > 0) {
+    addEndTimesAndDurations(tracklistArray, videoDetails.lengthSeconds);
+    triggerScrobblesFromTracklist(tracklistArray);
+  }
+}
+
+const parseTracklistAlbum = videoDetails => {
+  let titleParts = videoDetails.title.split(/ \-|\| /);
+  return {
+    artistAlbum: clearString(titleParts[0]),
+    album: titleParts[1] ? clearString(titleParts[1]) : undefined
+  };
+}
+
+const handleTracklistLine = (line, albumDetails) => {
+  const possibleTimePart = line.split(' ')[0];
+  if (isValidTime(possibleTimePart)) {
+    tracklistOnDescription = true;
+    let lineWithoutTimestamp = line.split(' ').slice(1).join(' ');
+    let splitDash = lineWithoutTimestamp.split(' - ');
+    let objToPush = {
+      timestampStart: parseValidTime(possibleTimePart),
+      albumArtist: albumDetails.artistAlbum,
+    }
+    if (albumDetails.album) {
+      objToPush.album = albumDetails.album;
+    }
+    let firstPartBeforeDash = clearString(splitDash[0]);
+    let secondPartAfterDash = splitDash[1] ? clearString(splitDash[1]) : undefined;
+    if (splitDash.length === 1 || firstPartBeforeDash === '') {
+      // handles both "hh:mm track name" and "hh:mm - track name"
+      objToPush.artist = albumDetails.artistAlbum;
+      objToPush.track = firstPartBeforeDash;
+      if (firstPartBeforeDash === '') {
+        objToPush.track = secondPartAfterDash;
+      }
+    } else {
+      // handles "hh:mm artist - track"
+      objToPush.artist = firstPartBeforeDash;
+      objToPush.track = secondPartAfterDash;
+    }
+    tracklistArray.push(objToPush);
+  }
+}
+
+// hh:mm:ss, h:mm:ss, mm:ss or m:ss are accepted
+const validTimeRegex = /^(\d?\d\:)?\d?\d\:\d\d$/;
+const isValidTime = timeString => validTimeRegex.test(timeString);
+
+const parseValidTime = timeString => {
+  let timeParts = timeString.split(':');
+  let seconds = timeParts[timeParts.length - 1];
+  let minutes = timeParts[timeParts.length - 2];
+  let hours = timeParts[timeParts.length - 3] || 0;
+  return parseInt(seconds, 10) + 
+    (parseInt(minutes, 10) * 60) +
+    (parseInt(hours, 10) * 60 * 60);
+}
+
+const addEndTimesAndDurations = (tracklistArray, duration) => {
+  // classic `for` to easely access next element inside a loop
+  for (let i=0, l=tracklistArray.length; i<l; i++) {
+    let nextSongDuration;
+    if (i+1 === l) {
+      nextSongDuration = parseInt(duration, 10);
+    } else {
+      nextSongDuration = tracklistArray[i+1].timestampStart;
+    }
+    tracklistArray[i].timestampEnd = nextSongDuration - 1;
+    tracklistArray[i].duration = tracklistArray[i].timestampEnd - tracklistArray[i].timestampStart;
+  }
+}
+
+const scrobbleFromTimestamp = tracklistObj => {
+  msg.displayFor(`Scrobbling "${tracklistObj.artist} - ${tracklistObj.track}" from tracklist...`);
+  chrome.runtime.sendMessage({
+    method: 'track.scrobble',
+    track: tracklistObj.track,
+    artist: tracklistObj.artist,
+    timestamp: Date.now()/1000 - tracklistObj.duration,
+  }, resp => {
+    // console.log('track.scrobble', resp);
+    if (resp && resp.scrobbles && resp.scrobbles['@attr'] && resp.scrobbles['@attr'].accepted > 0) {
+      msg.displayFor(`Scrobbled "${tracklistObj.artist} - ${tracklistObj.track}" from tracklist successfully.`, 30);
+    } else {
+      msg.displayFor('Error on scrobbling tracklist track.');
+    }
+  });
+}
+
+const triggerScrobblesFromTracklist = tracklistArray => {
+  tracklistArray.forEach(tracklistObj => {
+    let secondsToScrobble = tracklistObj.timestampEnd - TRACKLIST_SCROBBLE_SECONDS_BEFORE_END;
+    // console.log(`setting timeout to scrobble in ${secondsToScrobble} seconds`, tracklistObj);
+    window.setTimeout(() => {
+      // console.log('scrobbleFromTimestamp', tracklistObj);
+      scrobbleFromTimestamp(tracklistObj);
+    }, secondsToScrobble * 1000);
+  });
+}
+
 window.addEventListener('message', ({data}) => {
   if (data && data.method === 'lastfm-data-fetched') {
     init();
     const {page, info} = data;
+    handleDescription(page.pageData.playerResponse.videoDetails);
     duration = data.duration;
 
     try {
@@ -217,6 +350,8 @@ window.addEventListener('message', ({data}) => {
       else if (duration <= 30) {
         msg.displayFor('Scrobbling skipped (Less than 30 seconds)');
         hideLove();
+      } else if (tracklistOnDescription) {
+        msg.displayFor('Will scrobble songs from timestamp. Notice it does not support pausing / forward so far.');
       }
       else {
         const song = (({title, author}) => {
@@ -226,13 +361,15 @@ window.addEventListener('message', ({data}) => {
             ' // ', '-', '–', '—', ':', '|', '///', '/'
           ].filter(s => title.indexOf(s) !== -1);
           if (separators.length) {
-            const [artist, track] = title.split(separators[0]);
+            let [artist, track] = title.split(separators[0]);
+            artist = clearString(artist);
+            track = clearString(track);
             return {artist, track};
           }
           else {
             return {
-              artist: author.replace('VEVO', ''),
-              track: title
+              artist: clearString(author),
+              track: clearString(title)
             };
           }
         })(info);
