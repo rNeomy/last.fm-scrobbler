@@ -174,7 +174,8 @@ const msg = (div => {
         method: 'track.scrobble',
         track,
         artist,
-        timestamp: Math.max(start.getTime(), (new Date()).getTime() - minTime * 1000) / 1000
+        // timestamp: Math.max(start.getTime(), (new Date()).getTime() - minTime * 1000) / 1000
+        timestamp: start.getTime() / 1000
       }, resp => {
         // console.log('track.scrobble', resp);
         active = false;
