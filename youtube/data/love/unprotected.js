@@ -8,7 +8,6 @@
     if (button) {
       const loved = document.currentScript.src.indexOf('loved=1') !== -1;
 
-      console.log(loved);
       button.dataset.love = !loved;
       button.dataset.hidden = false;
       button.querySelector('path').classList[loved ? 'remove' : 'add']('ytp-svg-fill');

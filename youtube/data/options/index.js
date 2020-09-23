@@ -1,8 +1,8 @@
 'use strict';
 
-var info = document.getElementById('info');
+const toast = document.getElementById('toast');
 
-var restore = () => chrome.storage.local.get({
+const restore = () => chrome.storage.local.get({
   categories: ['Música', 'Music', 'Entertainment'],
   checkCategory: true,
   manualCheck: false,
@@ -25,16 +25,16 @@ document.getElementById('save').addEventListener('click', () => {
     categories: document.getElementById('categories').value.split(/\s*,\s*/).filter((s, i, l) => l.indexOf(s) === i),
     minTime: +document.getElementById('minTime').value
   }, () => {
-    info.textContent = 'Options saved';
-    window.setTimeout(() => info.textContent = '', 750);
+    toast.textContent = 'Options saved';
+    window.setTimeout(() => toast.textContent = '', 750);
     restore();
   });
 });
 // reset
 document.getElementById('reset').addEventListener('click', e => {
   if (e.detail === 1) {
-    info.textContent = 'Double-click to reset!';
-    window.setTimeout(() => info.textContent = '', 750);
+    toast.textContent = 'Double-click to reset!';
+    window.setTimeout(() => toast.textContent = '', 750);
   }
   else {
     localStorage.clear();

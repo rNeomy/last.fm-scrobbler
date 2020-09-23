@@ -1,7 +1,8 @@
 'use strict';
 
-document.documentElement.appendChild(Object.assign(document.createElement('script'), {
-  textContent: `
+{
+  const script = document.createElement('script');
+  script.textContent = `
     var yttools = window.yttools || [];
 
     yttools.lastfm = {};
@@ -67,5 +68,7 @@ document.documentElement.appendChild(Object.assign(document.createElement('scrip
         });
       });
     }
-  `
-}));
+  `;
+  document.documentElement.appendChild(script);
+  script.remove();
+}
