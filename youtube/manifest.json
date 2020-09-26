@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Last.fm Scrobbler for YouTube",
-  "version": "0.1.8",
+  "version": "0.1.9",
 
   "description": "Scrobbling YouTube music videos to Last.fm with support for chapters/tracks",
 
@@ -18,7 +18,8 @@
     "48": "data/icons/48.png",
     "64": "data/icons/64.png",
     "128": "data/icons/128.png",
-    "256": "data/icons/256.png"
+    "256": "data/icons/256.png",
+    "512": "data/icons/512.png"
   },
   "content_scripts": [{
     "run_at": "document_start",
