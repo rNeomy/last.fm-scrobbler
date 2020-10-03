@@ -8,6 +8,8 @@
     yttools.lastfm = {};
 
     yttools.push(player => {
+      console.log('GERE');
+
       let fetched = '';
 
       yttools.lastfm.player = player;
@@ -39,35 +41,23 @@
     });
 
     function onYouTubePlayerReady(player) {
-      yttools.forEach(c => c(player));
-    }
-
-    {
-      function observe(object, property, callback) {
-        let value;
-        const descriptor = Object.getOwnPropertyDescriptor(object, property);
-        Object.defineProperty(object, property, {
-          enumerable: true,
-          configurable: true,
-          get: () => value,
-          set: v => {
-            callback(v);
-            if (descriptor && descriptor.set) {
-              descriptor.set(v);
-            }
-            value = v;
-            return value;
-          }
-        });
+      if (yttools.resolved !== true) {
+        yttools.resolved = true;
+        yttools.forEach(c => c(player));
       }
-      observe(window, 'ytplayer', ytplayer => {
-        observe(ytplayer, 'config', config => {
-          if (config && config.args) {
-            config.args.jsapicallback = 'onYouTubePlayerReady';
-          }
-        });
-      });
     }
+    window.addEventListener('spfready', () => {
+      if (typeof window.ytplayer === 'object' && window.ytplayer.config && yttools.resolved !== true) {
+        window.ytplayer.config.args.jsapicallback = 'onYouTubePlayerReady';
+      }
+    });
+    window.addEventListener('yt-navigate-finish', () => {
+      const player = document.querySelector('.html5-video-player');
+      if (player && yttools.resolved !== true) {
+        yttools.resolved = true;
+        yttools.forEach(c => c(player));
+      }
+    });
   `;
   document.documentElement.appendChild(script);
   script.remove();

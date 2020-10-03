@@ -99,6 +99,7 @@ const editor = {
   init: () => {
     const parent = document.querySelector('ytd-watch #player-container') ||
       document.querySelector('ytd-player #container');
+
     editor.form = document.createElement('form');
     if (parent) {
       const aInput = Object.assign(document.createElement('input'), {
