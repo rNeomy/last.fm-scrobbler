@@ -302,17 +302,18 @@ window.addEventListener('message', ({data}) => {
           }
         })(info);
         const filter = track => track
-          .replace(/\[.+\]/, '')
+          .replace(/\[.+\]|\(.+\)/g, '')
           .trim();
         chrome.storage.local.get({
           'filter': true
         }, prefs => {
-          track = song.track;
           if (prefs.filter) {
             artist = filter(song.artist);
+            track = filter(song.track);
           }
           else {
             artist = song.artist;
+            track = song.track;
           }
           if (artist && track) {
             check();
