@@ -285,33 +285,32 @@ window.addEventListener('message', ({data}) => {
             ' // ', '-', '–', '—', ':', '|', '///', '/'
           ].filter(s => title.indexOf(s) !== -1);
           if (separators.length) {
-            let [artist, track] = title.split(separators[0]);
-            // fix artist (e.g. https://www.youtube.com/watch?v=l8wTbJ_MI9o)
-            {
-              const separators = [
-                ' -- ', '--', ' - ', ' – ', ' — ',
-                ' // ', '-', '–', '—', ':', '|', '///', '/'
-              ].filter(s => artist.indexOf(s) !== -1);
-              if (separators.length) {
-                artist = artist.split(separators[0])[0];
-              }
-            }
-            // clean up
-            artist = clearString(artist);
-            track = clearString(track);
-            // use chapter title when possible
-            if (chapter && chapter.textContent) {
-              track = clearString(chapter.textContent);
-              chapterCache.push(track);
-            }
-            return {artist, track};
+            [artist, track] = title.split(separators[0]);
           }
           else {
-            return {
-              artist: clearString(author),
-              track: clearString(title)
-            };
+            artist = author;
+            track = title;
           }
+          // use chapter title when possible
+          if (chapter && chapter.textContent) {
+            track = chapter.textContent;
+            chapterCache.push(track);
+          }
+          // fix artist (e.g. https://www.youtube.com/watch?v=Sdqpykf3fF4, https://www.youtube.com/watch?v=l8wTbJ_MI9o)
+          {
+            const separators = [
+              ' -- ', '--', ' - ', ' – ', ' — ',
+              ' // ', '-', '–', '—', ':', '|', '///', '/'
+            ].filter(s => artist.indexOf(s) !== -1);
+            if (separators.length) {
+              artist = artist.split(separators[0])[0];
+            }
+          }
+
+          return {
+            artist: clearString(artist),
+            track: clearString(track)
+          };
         })(info);
         // console.log(song, data);
 
