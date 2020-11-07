@@ -22,26 +22,19 @@ const timer = {
   }
 };
 
+// Dua Lipa, Angèle - Fever (Official Music Video)
+// Katy Perry - Roar (Official)
+// [OFFICIAL VIDEO] Amazing Grace - Pentatonix
+// BEST MUSIC 2019 (HD sound quality)
+// Autechre - SIGN (Full Album)
+
 const clearString = originalTitle => originalTitle
   .replace(/^- /, '')
   .replace('VEVO', '')
-  .replace(/\(?\[?Official\)?\]?/ig, '')
-  .replace(/\(?\[?HD\)?\]?/ig, '')
-  .replace(/\(?\[?Official Version\)?\]?/ig, '')
-  .replace(/\(?\[?Official Audio\)?\]?/ig, '')
-  .replace(/\(?\[?Official Video\)?\]?/ig, '')
-  .replace(/\(?\[?Official Music Video\)?\]?/ig, '')
-  .replace(/\(?\[?Official Music 4K Video\)?\]?/ig, '')
-  .replace(/\(?\[?Official 4K Music Video\)?\]?/ig, '')
-  .replace(/\(?\[?Official Music Video HD\)?\]?/ig, '')
-  .replace(/\(?\[?Official Lyric Video\)?\]?/ig, '')
-  .replace(/\(?\[?Official Promo Video\)?\]?/ig, '')
-  .replace(/\(?\[?Clipe oficial\)?\]?/ig, '')
-  .replace(/\(?\[?videoclipe oficial\)?\]?/ig, '')
-  .replace(/\(?\[?Clip Officiel\)?\]?/ig, '')
-  .replace(/\(?\[?Music Video\)?\]?/ig, '')
-  .replace(/\(?\[?Official MV\)?\]?/ig, '')
-  .replace(/\(?\[?\d?\d?\d?\d?\s?Full Album\)?\]?/ig, '')
+  .replace(/(?<=\()[^)]*(video|videoclipe|clipe|audio|official|oficial|hd|version|music|4k|lyric|promo|album)[^)]*(?=\))/ig, '')
+  .replace(/\(\)/g, '')
+  .replace(/(?<=\[)[^\]]*(video|videoclipe|clipe|audio|official|oficial|hd|version|music|4k|lyric|promo|album)[^\]]*(?=\])/ig, '')
+  .replace(/\[\]/g, '')
   .trim();
 
 function check(info, period) {

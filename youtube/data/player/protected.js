@@ -8,13 +8,12 @@
     yttools.lastfm = {};
 
     yttools.push(player => {
-      console.log('GERE');
-
       let fetched = '';
 
       yttools.lastfm.player = player;
 
       const onStateChange = state => {
+        console.log('FM', state);
         if (fetched && state === 1) {
           window.postMessage({
             method: 'lastfm-data-fetched',
@@ -31,11 +30,15 @@
       };
 
       document.addEventListener('yt-page-data-fetched', e => {
+        console.log(e.detail);
         fetched = e.detail;
         if (player.getPlayerState() === 1) {
           onStateChange(1);
         }
       });
+      if (player.getPlayerState() === 1) {
+        onStateChange(1);
+      }
 
       player.addEventListener('onStateChange', onStateChange);
     });
@@ -43,7 +46,12 @@
     function onYouTubePlayerReady(player) {
       if (yttools.resolved !== true) {
         yttools.resolved = true;
-        yttools.forEach(c => c(player));
+        for (const c of yttools) {
+          try {
+            c(player);
+          }
+          catch (e) {}
+        }
       }
     }
     window.addEventListener('spfready', () => {
@@ -55,7 +63,12 @@
       const player = document.querySelector('.html5-video-player');
       if (player && yttools.resolved !== true) {
         yttools.resolved = true;
-        yttools.forEach(c => c(player));
+        for (const c of yttools) {
+          try {
+            c(player);
+          }
+          catch (e) {}
+        }
       }
     });
   `;
