@@ -254,9 +254,13 @@ window.addEventListener('message', ({data}) => {
         .rows['0'].metadataRowRenderer.contents['0'].runs['0'].text;
     }
     catch (e) {}
+    const channel = (info.author || '').replace(/vevo/i, '');
+
+    console.info('Channel:', channel, 'Category:', category);
 
     chrome.storage.local.get({
       categories: ['Música', 'Music', 'Entertainment'],
+      blacklistAuthors: [],
       checkCategory: true
     }, prefs => {
       if (prefs.categories.indexOf(category) === -1 && prefs.checkCategory) {
@@ -265,6 +269,10 @@ window.addEventListener('message', ({data}) => {
       }
       else if (duration <= 30) {
         msg.displayFor('Scrobbling skipped (Less than 30 seconds)');
+        hideLove();
+      }
+      else if (prefs.blacklistAuthors.map(s => s.toLowerCase()).indexOf(channel.toLowerCase()) !== -1) {
+        msg.displayFor(`Scrobbling skipped ("${channel}" is in the blacklist)`);
         hideLove();
       }
       else {
@@ -305,7 +313,7 @@ window.addEventListener('message', ({data}) => {
             };
           }
         })(info);
-        console.log(song, data);
+        // console.log(song, data);
 
         const filter = track => track
           .replace(/\[.+\]/, '')

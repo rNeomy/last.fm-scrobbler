@@ -27,18 +27,25 @@
         <td><label for="filter">Try to clean the song title (e.g. remove text in brackets, ...) before validating by last.fm</label></td>
       </tr>
       <tr>
-        <td><input type="checkbox" id="checkCategory"></td>
+        <td>&nbsp;</td>
         <td>
-          <label for="checkCategory">Only scrobble to Last.fm on the following categories</label>
-          <h4>Supported categories</h4>
-          <input type="text" id="categories" placeholder="e.g.: Music, Entertainment">
+          <span>Minimum time before scrobbling starts (seconds)</span>
+          <input style="margin-top: 5px;" type="number" id="minTime" placeholder="240" value="240">
         </td>
       </tr>
       <tr>
         <td>&nbsp;</td>
         <td>
-          <h4>Minimum time before scrobbling starts (seconds)</h4>
-          <input type="number" id="minTime" placeholder="240" value="240">
+          <span>Comma-separated list of channel names to skip scrobbling</span>
+          <input style="margin-top: 5px;" type="text" id="blacklistAuthors">
+        </td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" id="checkCategory"></td>
+        <td>
+          <label for="checkCategory">Only scrobble to Last.fm on the following categories</label>
+          <h4>Supported categories</h4>
+          <input type="text" id="categories" placeholder="e.g.: Music, Entertainment">
         </td>
       </tr>
     </table>

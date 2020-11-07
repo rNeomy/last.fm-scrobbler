@@ -4,6 +4,7 @@ const toast = document.getElementById('toast');
 
 const restore = () => chrome.storage.local.get({
   categories: ['Música', 'Music', 'Entertainment'],
+  blacklistAuthors: [],
   checkCategory: true,
   manualCheck: false,
   filter: true,
@@ -13,6 +14,7 @@ const restore = () => chrome.storage.local.get({
   document.getElementById('filter').checked = prefs.filter;
   document.getElementById('manualCheck').checked = prefs.manualCheck;
   document.getElementById('categories').value = prefs.categories.join(', ');
+  document.getElementById('blacklistAuthors').value = prefs.blacklistAuthors.join(', ');
   document.getElementById('minTime').value = prefs.minTime;
 });
 restore();
@@ -22,7 +24,8 @@ document.getElementById('save').addEventListener('click', () => {
     filter: document.getElementById('filter').checked,
     checkCategory: document.getElementById('checkCategory').checked,
     manualCheck: document.getElementById('manualCheck').checked,
-    categories: document.getElementById('categories').value.split(/\s*,\s*/).filter((s, i, l) => l.indexOf(s) === i),
+    categories: document.getElementById('categories').value.split(/\s*,\s*/).filter((s, i, l) => s && l.indexOf(s) === i),
+    blacklistAuthors: document.getElementById('blacklistAuthors').value.split(/\s*,\s*/).filter((s, i, l) => s && l.indexOf(s) === i),
     minTime: +document.getElementById('minTime').value
   }, () => {
     toast.textContent = 'Options saved';
