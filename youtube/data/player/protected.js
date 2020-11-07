@@ -13,7 +13,6 @@
       yttools.lastfm.player = player;
 
       const onStateChange = state => {
-        console.log('FM', state);
         if (fetched && state === 1) {
           window.postMessage({
             method: 'lastfm-data-fetched',
@@ -30,7 +29,6 @@
       };
 
       document.addEventListener('yt-page-data-fetched', e => {
-        console.log(e.detail);
         fetched = e.detail;
         if (player.getPlayerState() === 1) {
           onStateChange(1);

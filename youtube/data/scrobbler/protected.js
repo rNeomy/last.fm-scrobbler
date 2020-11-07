@@ -278,6 +278,17 @@ window.addEventListener('message', ({data}) => {
           ].filter(s => title.indexOf(s) !== -1);
           if (separators.length) {
             let [artist, track] = title.split(separators[0]);
+            // fix artist (e.g. https://www.youtube.com/watch?v=l8wTbJ_MI9o)
+            {
+              const separators = [
+                ' -- ', '--', ' - ', ' – ', ' — ',
+                ' // ', '-', '–', '—', ':', '|', '///', '/'
+              ].filter(s => artist.indexOf(s) !== -1);
+              if (separators.length) {
+                artist = artist.split(separators[0])[0];
+              }
+            }
+            // clean up
             artist = clearString(artist);
             track = clearString(track);
             // use chapter title when possible
@@ -294,6 +305,8 @@ window.addEventListener('message', ({data}) => {
             };
           }
         })(info);
+        console.log(song, data);
+
         const filter = track => track
           .replace(/\[.+\]/, '')
           .trim();
