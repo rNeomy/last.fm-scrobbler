@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Last.fm Scrobbler for YouTube™",
-  "version": "0.2.2",
+  "version": "0.2.3",
 
   "description": "Scrobbling YouTube music videos to Last.fm with support for chapters/tracks",
 

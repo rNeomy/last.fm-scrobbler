@@ -8,7 +8,7 @@ const restore = () => chrome.storage.local.get({
   checkCategory: true,
   manualCheck: false,
   filter: true,
-  minTime: 240
+  minTime: 30
 }, prefs => {
   document.getElementById('checkCategory').checked = prefs.checkCategory;
   document.getElementById('filter').checked = prefs.filter;

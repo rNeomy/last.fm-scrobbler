@@ -27,15 +27,29 @@ const timer = {
 // [OFFICIAL VIDEO] Amazing Grace - Pentatonix
 // BEST MUSIC 2019 (HD sound quality)
 // Autechre - SIGN (Full Album)
+// Mastodon - Topic
 
-const clearString = originalTitle => originalTitle
-  .replace(/^- /, '')
-  .replace('VEVO', '')
-  .replace(/(?<=\()[^)]*(video|videoclipe|clipe|audio|official|oficial|hd|version|music|4k|lyric|promo|album)[^)]*(?=\))/ig, '')
-  .replace(/\(\)/g, '')
-  .replace(/(?<=\[)[^\]]*(video|videoclipe|clipe|audio|official|oficial|hd|version|music|4k|lyric|promo|album)[^\]]*(?=\])/ig, '')
-  .replace(/\[\]/g, '')
-  .trim();
+const clearString = (originalTitle, type) => {
+  originalTitle = originalTitle
+    .replace(' - Topic', '')
+    .replace(/^- /, '')
+    .replace('VEVO', '')
+    .replace(/(?<=\()[^)]*(video|videoclipe|clipe|audio|official|oficial|hd|version|music|4k|lyric|promo|album)[^)]*(?=\))/ig, '')
+    .replace(/\(\)/g, '')
+    .replace(/(?<=\[)[^\]]*(video|videoclipe|clipe|audio|official|oficial|hd|version|music|4k|lyric|promo|album)[^\]]*(?=\])/ig, '')
+    .replace(/\[\]/g, '');
+
+  if (type === 'artist') {
+    // e.g. Prince: The Story of 'Sign O’ The Times’ Ep. 1
+    originalTitle = originalTitle.split(':')[0];
+  }
+  if (type === 'track') {
+    // e.g. 1. Dance, Baby!
+    originalTitle = originalTitle.replace(/^\d+\s*[.-]/, '');
+  }
+
+  return originalTitle.trim();
+};
 
 function check(info, period) {
   const next = resp => {
@@ -60,7 +74,7 @@ Use Ctrl + Click or Command + Click to Abort Submission`);
       }));
       // install track observer
       chrome.storage.local.get({
-        minTime: 240
+        minTime: 30
       }, prefs => {
         timer.duration = period || Math.min(Math.round(duration) - 10, prefs.minTime);
         clearInterval(timer.id);
@@ -164,6 +178,7 @@ const msg = (div => {
       div.textContent = 'Scrobbling ...';
       // console.log('track.scrobble', 'track', track, 'artist', artist)
       // console.log('timestamp', Math.max(start.getTime(), (new Date()).getTime() - 4 * 60 * 1000) / 1000);
+      // console.log('artist', artist, 'track', track);
       chrome.runtime.sendMessage({
         method: 'track.scrobble',
         track,
@@ -278,7 +293,14 @@ window.addEventListener('message', ({data}) => {
       else {
         const chapter = document.querySelector('.ytp-chapter-title-content');
         const chapterCache = [];
-        const song = (({title, author}) => {
+        const parse = ({title, author}, overwrite = false) => {
+          // use chapter title when possible
+          // fix artist (e.g. Sdqpykf3fF4, l8wTbJ_MI9o, Ux_Rbgd-mOA)
+          if (chapter && chapter.textContent && overwrite) {
+            title = chapter.textContent;
+            chapterCache.push(chapter.textContent);
+          }
+
           title = title.replace(/^\[[^\]]+\]\s*-*\s*/i, '');
           const separators = [
             ' -- ', '--', ' - ', ' – ', ' — ',
@@ -291,28 +313,17 @@ window.addEventListener('message', ({data}) => {
             artist = author;
             track = title;
           }
-          // use chapter title when possible
-          if (chapter && chapter.textContent) {
-            track = chapter.textContent;
-            chapterCache.push(track);
-          }
-          // fix artist (e.g. https://www.youtube.com/watch?v=Sdqpykf3fF4, https://www.youtube.com/watch?v=l8wTbJ_MI9o)
-          {
-            const separators = [
-              ' -- ', '--', ' - ', ' – ', ' — ',
-              ' // ', '-', '–', '—', ':', '|', '///', '/'
-            ].filter(s => artist.indexOf(s) !== -1);
-            if (separators.length) {
-              artist = artist.split(separators[0])[0];
-            }
-          }
+          artist = clearString(artist, 'artist');
+          track = clearString(track, 'track');
 
+          // console.log('artist:', artist, 'track:', track, 2);
           return {
-            artist: clearString(artist),
-            track: clearString(track)
+            artist,
+            track
           };
-        })(info);
-        // console.log(song, data);
+        };
+        parse(info, true);
+        // console.log(data);
 
         const filter = track => track
           .replace(/\[.+\]/, '')
@@ -320,12 +331,8 @@ window.addEventListener('message', ({data}) => {
         chrome.storage.local.get({
           'filter': true
         }, prefs => {
-          track = song.track;
           if (prefs.filter) {
-            artist = filter(song.artist);
-          }
-          else {
-            artist = song.artist;
+            artist = filter(artist);
           }
           if (artist && track) {
             check();
@@ -335,12 +342,22 @@ window.addEventListener('message', ({data}) => {
                 const newTrack = clearString(chapter.textContent);
                 // analyze only once
                 if (newTrack && chapterCache.indexOf(newTrack) === -1) {
-                  track = newTrack;
                   chapterCache.push(newTrack);
-                  // clear old submission
-                  msg.clickable(false);
-                  msg.display('Analyzing...');
-                  check();
+                  start = new Date();
+                  parse({
+                    author: artist,
+                    title: newTrack
+                  });
+                  if (prefs.filter) {
+                    artist = filter(artist);
+                  }
+                  if (artist && track) {
+                    // clear old submission
+                    msg.clickable(false);
+                    editor.remove();
+                    msg.display('Analyzing...');
+                    check();
+                  }
                 }
               });
               observer.observe(chapter, {
