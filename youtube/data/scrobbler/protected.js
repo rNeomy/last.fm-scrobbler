@@ -22,6 +22,7 @@ const timer = {
   }
 };
 
+// Examples: Sdqpykf3fF4, l8wTbJ_MI9o, Ux_Rbgd-mOA, r7jVkDfuTRY, 3BgnLMQWV0g, O9Dcs9U7rXM
 // Dua Lipa, Angèle - Fever (Official Music Video)
 // Katy Perry - Roar (Official)
 // [OFFICIAL VIDEO] Amazing Grace - Pentatonix
@@ -39,15 +40,13 @@ const clearString = (originalTitle, type) => {
     .replace(/(?<=\[)[^\]]*(video|videoclipe|clipe|audio|official|oficial|hd|version|music|4k|lyric|promo|album)[^\]]*(?=\])/ig, '')
     .replace(/\[\]/g, '');
 
+  // e.g. 1. Dance, Baby!
+  // e.g. 00:00 01. Bad Company - Riptide
+  originalTitle = originalTitle.replace(/^\d[ \d.:-]+/, '');
   if (type === 'artist') {
     // e.g. Prince: The Story of 'Sign O’ The Times’ Ep. 1
     originalTitle = originalTitle.split(':')[0];
   }
-  if (type === 'track') {
-    // e.g. 1. Dance, Baby!
-    originalTitle = originalTitle.replace(/^\d+\s*[.-]/, '');
-  }
-
   return originalTitle.trim();
 };
 
@@ -295,7 +294,6 @@ window.addEventListener('message', ({data}) => {
         const chapterCache = [];
         const parse = ({title, author}, overwrite = false) => {
           // use chapter title when possible
-          // fix artist (e.g. Sdqpykf3fF4, l8wTbJ_MI9o, Ux_Rbgd-mOA)
           if (chapter && chapter.textContent && overwrite) {
             title = chapter.textContent;
             chapterCache.push(chapter.textContent);
