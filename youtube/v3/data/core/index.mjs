@@ -165,6 +165,13 @@ const play = request => {
             }
           }).then(r => {
             if (r.track) {
+              // report to last.fm
+              lastfm.call({
+                method: 'track.updateNowPlaying',
+                artist,
+                track
+              });
+              // start counter
               toast('');
               timer.set(duration, state === 1);
             }
