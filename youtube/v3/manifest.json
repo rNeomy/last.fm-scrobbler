@@ -38,5 +38,8 @@
     "resources": ["/data/core/index.html"],
     "matches": ["*://*.youtube.com/*"]
   }],
-  "homepage_url": "https://add0n.com/lastfm-tool.html?from=youtube"
+  "homepage_url": "https://add0n.com/lastfm-tool.html?from=youtube",
+  "options_ui": {
+    "page": "data/options/index.html"
+  }
 }

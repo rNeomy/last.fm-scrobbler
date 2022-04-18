@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Last.fm Scrobbler :: Options</title>
+  <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+  <body>
+    <div class="two">
+      <label for="filter">Try to clean the song title (e.g. remove text in brackets, ...) before validating by last.fm</label>
+      <input type="checkbox" id="filter">
+      <label for="minTime">Minimum time before scrobbling starts (seconds)</label>
+      <input type="number" id="minTime" placeholder="240" value="240">
+      <label for="checkCategory">Only scrobble to Last.fm on the following categories</label>
+      <input type="checkbox" id="checkCategory">
+    </div>
+    <textarea rows="3" id="categories" placeholder="e.g.: Music, Entertainment"></textarea>
+    <label for="blacklistAuthors">Comma-separated list of channel names to skip scrobbling</label>
+    <textarea rows="3" id="blacklistAuthors"></textarea>
+
+    <div>
+      <input type="button" id="support" value="Support Development">
+      <input type="button" id="reset" value="Factory Reset">
+    </div>
+    <div>
+      <input type="button" id="save" value="Save Options">
+      <span id="toast"></span>
+    </div>
+    <script src="index.js"></script>
+  </body>
+</html>
