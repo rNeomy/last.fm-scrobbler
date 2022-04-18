@@ -87,7 +87,7 @@ const play = request => {
 
   const {data, response, duration, title, state} = request;
 
-  const category = response?.microformat?.playerMicroformatRenderer?.category ||
+  let category = response?.microformat?.playerMicroformatRenderer?.category ||
                    response?.microformat?.microformatDataRenderer?.category || 'NA';
 
   const channel = (data.author || '').replace(/vevo/i, '');
@@ -96,6 +96,7 @@ const play = request => {
 
   chrome.storage.local.get({
     categories: ['Música', 'Music', 'Entertainment'],
+    pretendToBeMusic: ['full album'],
     blacklistAuthors: [],
     checkCategory: true
   }, prefs => {
@@ -106,6 +107,17 @@ const play = request => {
     const hide = () => chrome.runtime.sendMessage({
       method: 'hide'
     }, () => chrome.runtime.lastError);
+
+    // https://github.com/rNeomy/last.fm-scrobbler/issues/29
+    if (prefs.pretendToBeMusic.length && prefs.categories.includes(category) === false) {
+      const t = data.title.toLowerCase();
+      for (const word of prefs.pretendToBeMusic) {
+        if (t.includes(word)) {
+          category = 'Music';
+          break;
+        }
+      }
+    }
 
     if (prefs.categories.indexOf(category) === -1 && prefs.checkCategory) {
       toast(`Scrobbling skipped ("${category}" category is not listed)`, undefined, hide);
