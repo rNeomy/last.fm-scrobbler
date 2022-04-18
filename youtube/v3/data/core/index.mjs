@@ -2,7 +2,7 @@ import {toast, tools} from './helper.mjs';
 import {lastfm} from '../lastfm/lastfm.mjs';
 
 // find artist and track name
-const parse = (data, suggestedTitle) => {
+self.parse = (data, suggestedTitle) => new Promise(resolve => {
   let {title, author} = data;
   title = suggestedTitle || title;
   title = tools.clean(title, 'title');
@@ -18,8 +18,8 @@ const parse = (data, suggestedTitle) => {
   artist = tools.clean(artist, 'artist');
   track = tools.clean(track, 'track');
 
-  return {artist, track};
-};
+  resolve({artist, track});
+});
 
 const error = e => {
   document.body.dataset.mode = 'error';
@@ -99,7 +99,7 @@ const play = request => {
     pretendToBeMusic: ['full album'],
     blacklistAuthors: [],
     checkCategory: true
-  }, prefs => {
+  }, async prefs => {
     chrome.runtime.sendMessage({
       method: 'show'
     }, () => chrome.runtime.lastError);
@@ -129,7 +129,7 @@ const play = request => {
       toast(`Scrobbling skipped ("${channel}" is in the blacklist)`, undefined, hide);
     }
     else {
-      const o = parse(data, title);
+      const o = await self.parse(data, title);
       let {artist} = o;
       const {track} = o;
 
@@ -143,6 +143,7 @@ const play = request => {
         document.body.dataset.mode = 'submit';
         document.getElementById('artist').value = artist || '';
         document.getElementById('track').value = track || '';
+
         document.getElementById('duration').value = duration;
         toast('Validating...', -1);
 
@@ -198,11 +199,14 @@ document.querySelector('form').addEventListener('submit', e => {
   timer.stop('Wait...');
   document.body.dataset.mode = 'perform';
 
+  const track = document.getElementById('track').value;
+  const artist = document.getElementById('artist').value;
+
   lastfm.call({
     method: 'track.scrobble',
-    track: document.getElementById('track').value,
-    artist: document.getElementById('artist').value,
-    timestamp: timer.now / 1000
+    track,
+    artist,
+    timestamp: (timer.now || performance.timeOrigin) / 1000
   }).then(() => document.getElementById('close').click()).catch(error);
 });
 

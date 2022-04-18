@@ -1,4 +1,4 @@
-const add = () => setTimeout(() => {
+const add = (count = 0) => setTimeout(() => {
   const player = document.querySelector('.html5-video-player');
   const node = document.querySelector('#info-contents, .song-media-controls');
 
@@ -26,8 +26,11 @@ const add = () => setTimeout(() => {
       node.after(iframe);
     }
   }
+  else if (count < 5) {
+    add(count + 1);
+  }
   else {
-    console.warn('Cannot inject last-fm-core');
+    console.warn('Cannot inject last-fm-core', player, node);
   }
 }, 100);
 
