@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "Last.fm Scrobbler for YouTube™",
+  "version": "0.3.0",
+  "description": "Scrobbling YouTube music videos to Last.fm with support for chapters/tracks",
+  "permissions": [
+    "storage",
+    "identity",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://*.youtube.com/*",
+    "https://www.last.fm/api/*",
+    "https://ws.audioscrobbler.com/2.0/*"
+  ],
+  "icons": {
+    "16": "data/icons/16.png",
+    "32": "data/icons/32.png",
+    "48": "data/icons/48.png",
+    "64": "data/icons/64.png",
+    "128": "data/icons/128.png",
+    "256": "data/icons/256.png",
+    "512": "data/icons/512.png"
+  },
+  "content_scripts": [{
+    "run_at": "document_start",
+    "matches": [
+      "*://*.youtube.com/*"
+    ],
+    "css": ["/data/core/inject.css"],
+    "js": ["/data/core/inject.js"]
+  }],
+  "background": {
+    "service_worker": "worker.js"
+  },
+  "action": {},
+  "web_accessible_resources": [{
+    "resources": ["/data/core/index.html"],
+    "matches": ["*://*.youtube.com/*"]
+  }],
+  "homepage_url": "https://add0n.com/lastfm-tool.html?from=youtube"
+}

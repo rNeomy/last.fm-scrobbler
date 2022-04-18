@@ -1,0 +1,81 @@
+:root {
+  --fg: #606060;
+  --bg-active: rgba(127, 127, 127, 0.2);
+}
+
+body {
+  font-size: 13px;
+  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  margin: 1px;
+  color: var(--fg);
+  height: 100vh;
+}
+body,
+form {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+form {
+  flex: 1;
+  overflow: hidden;
+}
+
+@media screen and (max-width: 500px) {
+  form span {
+    display: none;
+  }
+}
+
+input[type=button],
+input[type=submit] {
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 1px var(--fg) inset;
+  color: var(--fg);
+  padding: 5px 10px;
+}
+input[type=button]:disabled,
+input[type=submit]:disabled {
+  opacity: 0.3;
+}
+
+input[type=text] {
+  background-color: transparent;
+  color: var(--fg);
+  border: none;
+  padding: 5px;
+  outline: none;
+}
+input[type=text]:focus {
+  background-color: var(--bg-active);
+}
+body[data-mode=perform] input[type=text] {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+body[data-mode=error] span:not(#toast),
+body[data-mode=error] input[type=text] {
+  display: none;
+}
+body[data-mode=parsing] :not(#toast):not(form) {
+  display: none;
+}
+
+#toast {
+  width: fit-content;
+  flex: 1;
+}
+#toast:empty {
+  display: none;
+}
+
+#artist {
+  flex: 1;
+  overflow: hidden;
+}
+#track {
+  flex: 2;
+  overflow: hidden;
+}

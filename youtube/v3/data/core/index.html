@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+<body>
+  <form>
+    <span>Artist:</span>
+    <input type="text" id="artist" required>
+    <span>Track:</span>
+    <input type="text" id="track" required>
+    <input type="text" id="duration" required hidden>
+    <span id="toast"></span>
+    <input type="submit" id="submit" value="Submit">
+  </form>
+  <input type="button" id="close" value="Close">
+
+  <script type="text/javascript" src="/data/lastfm/md5.min.js"></script>
+  <script type="module" src="index.mjs"></script>
+</body>
+</html>
