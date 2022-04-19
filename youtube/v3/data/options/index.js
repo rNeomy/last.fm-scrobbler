@@ -48,3 +48,10 @@ document.getElementById('reset').addEventListener('click', e => {
 document.getElementById('support').addEventListener('click', () => chrome.tabs.create({
   url: chrome.runtime.getManifest().homepage_url + '&rd=donate'
 }));
+// clean
+document.getElementById('clean').addEventListener('click', () => chrome.storage.local.set({
+  renames: {}
+}, () => {
+  toast.textContent = 'Done!';
+  window.setTimeout(() => toast.textContent = '', 750);
+}));

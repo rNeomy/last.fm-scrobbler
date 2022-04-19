@@ -33,6 +33,7 @@ const error = e => {
 const timer = {
   id: -1,
   duration: 30,
+  mode: 'active', // disabled, active, paused
   get: () => {
     const duration = timer.duration;
     return ('0' + Math.floor(duration / 60)).substr(-2) + ':' + ('0' + duration % 60).substr(-2);
@@ -49,10 +50,10 @@ const timer = {
   },
   stop(value = 'Submit') {
     clearInterval(timer.id);
-    timer.mode = '';
+    timer.mode = 'disabled';
     document.getElementById('submit').value = value;
   },
-  set(duration, active = true) {
+  set(duration) {
     chrome.storage.local.get({
       minTime: 30
     }, prefs => {
@@ -60,21 +61,22 @@ const timer = {
       timer.duration = Math.min(Math.round(duration) - 10, prefs.minTime);
       timer.stop();
       timer.mode = 'active';
-      clearInterval(timer.id);
-      if (active) {
+      if (timer.mode === 'active') {
+        clearInterval(timer.id);
         timer.id = setInterval(timer.update, 1000);
       }
     });
   },
   pause() {
-    clearInterval(timer.id);
-    if (timer.mode === 'active') {
+    if (timer.mode === 'paused' || timer.mode === 'active') {
+      clearInterval(timer.id);
       document.getElementById('submit').value = 'Submit (paused)';
+      timer.state = 'paused';
     }
   },
   resume() {
-    clearInterval(timer.id);
-    if (timer.mode === 'active') {
+    if (timer.mode === 'paused' || timer.mode === 'active') {
+      clearInterval(timer.id);
       timer.id = setInterval(timer.update, 1000);
       timer.update();
     }
@@ -86,9 +88,14 @@ const play = request => {
   toast('parsing...', -1);
 
   const {data, response, duration, title, state} = request;
+  let {category} = request;
 
-  let category = response?.microformat?.playerMicroformatRenderer?.category ||
-                   response?.microformat?.microformatDataRenderer?.category || 'NA';
+  timer.mode = state === 1 ? 'active' : 'disabled';
+
+  category = category ||
+    response?.microformat?.playerMicroformatRenderer?.category ||
+    response?.microformat?.microformatDataRenderer?.category ||
+    'NA';
 
   const channel = (data.author || '').replace(/vevo/i, '');
 
@@ -173,7 +180,7 @@ const play = request => {
               });
               // start counter
               toast('');
-              timer.set(duration, state === 1);
+              timer.set(duration);
             }
             else {
               timer.stop();

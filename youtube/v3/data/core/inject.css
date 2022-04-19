@@ -14,3 +14,9 @@ html[dark=true] #last-fm-core {
 #last-fm-core.hidden {
   display: none;
 }
+
+@media all and (display-mode: fullscreen) {
+  #last-fm-core {
+    display: none;
+  }
+}

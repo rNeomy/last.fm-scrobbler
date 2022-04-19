@@ -1,6 +1,7 @@
 :root {
   --fg: #606060;
   --bg-active: rgba(127, 127, 127, 0.2);
+  --bg: rgba(127, 127, 127, 0.1);
 }
 
 body {
@@ -41,7 +42,7 @@ input[type=submit]:disabled {
 }
 
 input[type=text] {
-  background-color: transparent;
+  background-color: var(--bg);
   color: var(--fg);
   border: none;
   padding: 5px;
@@ -64,8 +65,9 @@ body[data-mode=parsing] :not(#toast):not(form) {
 }
 
 #toast {
-  width: fit-content;
   flex: 1;
+  text-align: right;
+  white-space: nowrap;
 }
 #toast:empty {
   display: none;

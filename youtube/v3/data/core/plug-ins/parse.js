@@ -12,7 +12,7 @@
 
     // save user-edited tracks
     if (track !== oTrack || artist !== oArtist) {
-      console.log('Save custom parsing...');
+      console.info('Save custom parsing...');
       chrome.storage.local.get({
         renames: {}
       }, prefs => chrome.storage.local.set({

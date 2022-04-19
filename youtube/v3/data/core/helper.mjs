@@ -21,17 +21,19 @@ const tools = {
     }
 
     originalTitle = originalTitle
-      .replace(' - Topic', '')
+      // e.g. Love and Thunder - Topic
+      // e.g. Love and Thunder | Official Teaser
+      .replace(/\s+[|-]\s+(topic|video|videoclipe|series|event|live|clipe|audio|official|oficial|hd|version|music|4k|lyric|promo|album).*/ig, '')
       .replace(/^- /, '')
       .replace('VEVO', '')
-      .replace(/(?<=\()[^)]*(video|videoclipe|clipe|audio|official|oficial|hd|version|music|4k|lyric|promo|album)[^)]*(?=\))/ig, '')
-      .replace(/\(\)/g, '')
-      .replace(/(?<=\[)[^\]]*(video|videoclipe|clipe|audio|official|oficial|hd|version|music|4k|lyric|promo|album)[^\]]*(?=\])/ig, '')
-      .replace(/\[\]/g, '');
+      // e.g. Adele - Oh My God (Official Video)
+      .replace(/\(.*(video|videoclipe|series|event|live|clipe|audio|official|oficial|hd|version|music|4k|lyric|promo|album).*\)/ig, '')
+      // e.g. Adele - Oh My God [Official Video]
+      .replace(/\[.*(video|videoclipe|series|event|live|clipe|audio|official|oficial|hd|version|music|4k|lyric|promo|album).*\]/ig, '')
+      // e.g. 1. Dance, Baby!
+      // e.g. 00:00 01. Bad Company - Riptide
+      .replace(/^\d[ \d.:-]+/, '');
 
-    // e.g. 1. Dance, Baby!
-    // e.g. 00:00 01. Bad Company - Riptide
-    originalTitle = originalTitle.replace(/^\d[ \d.:-]+/, '');
     if (type === 'artist') {
       // e.g. Prince: The Story of 'Sign O’ The Times’ Ep. 1
       originalTitle = originalTitle.split(':')[0];
