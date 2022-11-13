@@ -1,10 +1,10 @@
 const toast = (msg, duration = 10, c = () => {}) => {
   const e = document.getElementById('toast');
-  e.textContent = msg;
+  e.title = e.textContent = msg;
   clearTimeout(toast.id);
   if (duration > 0) {
     toast.id = setTimeout(() => {
-      e.textContent = '';
+      e.title = e.textContent = '';
       c();
     }, duration * 1000);
   }

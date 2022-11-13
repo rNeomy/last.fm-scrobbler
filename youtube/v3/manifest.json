@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Last.fm Scrobbler for YouTube™",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Scrobbling YouTube music videos to Last.fm with support for chapters/tracks",
   "permissions": [
     "storage",
@@ -33,7 +33,6 @@
   "background": {
     "service_worker": "worker.js"
   },
-  "action": {},
   "web_accessible_resources": [{
     "resources": ["/data/core/index.html"],
     "matches": ["*://*.youtube.com/*"]

@@ -18,7 +18,14 @@ const chapter = c => {
   const e = document.querySelector('.ytp-chapter-title-content');
   if (e) {
     const cache = new Set();
-    const observer = new MutationObserver(() => {
+
+    try {
+      chapter.observer.disconnect();
+      console.log(111);
+    }
+    catch (e) {}
+
+    const observer = chapter.observer = new MutationObserver(() => {
       const newTrack = e.textContent;
 
       if (newTrack && cache.has(newTrack) === false) {
@@ -43,6 +50,7 @@ const get = () => {
 
 {
   const iframe = document.getElementById('last-fm-core');
+  let timeout;
 
   const watch = (title = '', count = 0) => {
     if (location.hostname !== 'music.youtube.com' && location.pathname.startsWith('/watch') === false) {
@@ -68,7 +76,9 @@ const get = () => {
             watch(title);
           });
 
-          iframe.contentWindow.postMessage({
+          // prevent multiple requests
+          clearTimeout(timeout);
+          timeout = setTimeout(() => iframe.contentWindow.postMessage({
             method: 'play',
             response: player.getPlayerResponse(),
             data,
@@ -76,7 +86,7 @@ const get = () => {
             state: player.getPlayerState(),
             title,
             category: location.hostname === 'music.youtube.com' ? 'Music' : ''
-          }, '*');
+          }, '*'), 300);
         }
       }
       else {

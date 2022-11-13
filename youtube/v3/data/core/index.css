@@ -68,6 +68,8 @@ body[data-mode=parsing] :not(#toast):not(form) {
   flex: 1;
   text-align: right;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 #toast:empty {
   display: none;
